@@ -8,22 +8,92 @@ Flight::route('/', function() {
     Flight::render('accueil');
 });
 
-Flight::route('/test-db', function () {
-    $host = 'db';
-    $port = 5432;
-    $dbname = 'mydb';
-    $user = 'postgres';
-    $pass = 'postgres';
 
-    // Connexion BDD
-    $link = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$pass");
+// ----------------------------------------------------
+// Connexion PostgreSQL
+// ----------------------------------------------------
+$host = "db";
+$port = 5432;
+$dbname = "mydb";
+$user = "postgres";
+$pass = "postgres";
 
-    $sql = "SELECT * FROM points";
-    $query = pg_query($link, $sql);
-    $results = pg_fetch_all($query);
-    Flight::json($results);
+$conn = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$pass");
+
+if (!$conn) {
+    die("Erreur connexion DB");
+}
+
+Flight::set('db', $conn);
+
+// ----------------------------------------------------
+// Pages HTML
+// ----------------------------------------------------
+Flight::route('/', function() {
+    Flight::render('accueil');
 });
 
+Flight::route('/jeu', function() {
+    Flight::render('jeu');
+});
+
+
+
+// ----------------------------------------------------
+// API : GET api/objets
+// Renvoie tous les objets visibles au démarrage du jeu
+// ----------------------------------------------------
+Flight::route('GET /api/objets', function() {
+    $conn = Flight::get('db');
+
+    $sql = "
+        SELECT o.id, o.nom, o.type_objet, o.icone, o.zoom_min,
+               ST_X(p.geom) AS lon, ST_Y(p.geom) AS lat
+        FROM objets o
+        JOIN points p ON o.id_point = p.id
+        WHERE o.charge_au_depart = TRUE
+    ";
+
+    $res = pg_query($conn, $sql);
+    $objets = pg_fetch_all($res);
+
+    Flight::json($objets);
+});
+
+
+
+// ----------------------------------------------------
+// API : GET api/objets/{id}
+// Renvoie les données détaillées d’un objet
+// ----------------------------------------------------
+Flight::route('GET /api/objets/@id', function($id) {
+    $conn = Flight::get('db');
+
+    $sql = "
+        SELECT o.*, ST_X(p.geom) AS lon, ST_Y(p.geom) AS lat
+        FROM objets o
+        JOIN points p ON o.id_point = p.id
+        WHERE o.id = $1
+    ";
+
+    $result = pg_query_params($conn, $sql, [$id]);
+    $objet = pg_fetch_assoc($result);
+
+    Flight::json($objet);
+});
+
+
+Flight::route('/jeu', function() {
+    $pseudo = Flight::request()->query->pseudo ?? "Joueur";
+
+    Flight::set('pseudo', $pseudo);
+    Flight::render('jeu', ['pseudo' => $pseudo]);
+});
+
+
+// ----------------------------------------------------
+// Lancer l'application
+// ----------------------------------------------------
 Flight::start();
 
 ?>
