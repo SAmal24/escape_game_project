@@ -1,3 +1,5 @@
+<?php $pseudo = $pseudo ?? "Joueur"; ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5,13 +7,12 @@
     <title>Hakimi Quest - Jeu</title>
 
     <!-- OpenLayers -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css">
-    <script src="https://cdn.jsdelivr.net/npm/ol@latest/ol.js"></script>
-
-    <!-- Vue.js -->
-    <script src="https://unpkg.com/vue@3"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css">
 
     <link rel="stylesheet" href="/public/css/style.css">
+
+
+
 </head>
 <body>
 
@@ -53,7 +54,40 @@
     </div>
 
     <!-- CARTE -->
-    <div id="map" class="map"></div>
+    <div id="map" class="map">
+         <!-- FORMULAIRE DE RECHERCHE -->
+         <div class="search-container">
+            <form @submit.prevent="searchLocation" class="search-form">
+                <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    placeholder="Rechercher un lieu ou une adresse..."
+                    class="search-input"
+                >
+                <button type="submit" class="search-btn">🔍</button>
+                <div v-if="searchResults.length > 0" class="search-results">
+                    <div 
+                        v-for="(result, index) in searchResults" 
+                        :key="index"
+                        @click="selectLocation(result)"
+                        class="search-result-item"
+                    >
+                        <strong>{{ result.display_name }}</strong>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POPUP DE RÉCUPÉRATION D'OBJET -->
+    <div v-if="popupVisible" class="objet-popup-overlay" @click="closePopup">
+        <div class="objet-popup" @click.stop>
+            <button class="popup-close" @click="closePopup">×</button>
+            <div class="popup-content">
+                <p class="popup-message">{{ popupMessage }}</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer class="footer">
@@ -63,6 +97,15 @@
 <script>
     const joueurPseudo = "<?php echo htmlspecialchars($pseudo); ?>";
 </script>
+
+
+ <!-- OpenLayers -->
+<script src="https://cdn.jsdelivr.net/npm/ol@v10.7.0/dist/ol.js"></script>
+
+<!-- Vue.js -->
+<script src="https://unpkg.com/vue@3"></script>
+
+
 <!-- SCRIPT DU JEU -->
 <script src="/public/js/jeu.js"></script>
 

@@ -33,8 +33,19 @@ Flight::route('/', function() {
     Flight::render('accueil');
 });
 
+//Flight::route('/jeu', function() {
+  //  Flight::render('jeu');
+//});
+
+
+
 Flight::route('/jeu', function() {
-    Flight::render('jeu');
+
+    $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo'] : "Joueur";
+
+    Flight::render('jeu', [
+        'pseudo' => $pseudo
+    ]);
 });
 
 
@@ -82,13 +93,6 @@ Flight::route('GET /api/objets/@id', function($id) {
     Flight::json($objet);
 });
 
-
-Flight::route('/jeu', function() {
-    $pseudo = Flight::request()->query->pseudo ?? "Joueur";
-
-    Flight::set('pseudo', $pseudo);
-    Flight::render('jeu', ['pseudo' => $pseudo]);
-});
 
 
 // ----------------------------------------------------
