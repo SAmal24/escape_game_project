@@ -6,6 +6,6 @@
     <title>Home</title>
 </head>
 <body>
-    <p>Hello World</p>
+    <p>Hello World , let's start creating app</p>
 </body>
 </html>
