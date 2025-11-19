@@ -167,6 +167,7 @@ const app = Vue.createApp({
             // Fermer automatiquement après 3 secondes
             setTimeout(() => {
                 this.popupVisible = false;
+                this.popupMessage = ''; // Vider le message aussi
             }, 3000);
         },
 
@@ -175,6 +176,7 @@ const app = Vue.createApp({
         // -----------------------------------------
         closePopup() {
             this.popupVisible = false;
+            this.popupMessage = ''; // Vider le message aussi
         },
 
         // -----------------------------------------

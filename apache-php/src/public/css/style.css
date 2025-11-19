@@ -4,6 +4,11 @@ body {
     background: #f3f3f3;
 }
 
+/* Cacher les éléments Vue non encore montés */
+[v-cloak] {
+    display: none !important;
+}
+
 .header {
     background: linear-gradient(90deg, #001f5b, #0052cc);
     padding: 20px;

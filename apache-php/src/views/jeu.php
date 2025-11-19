@@ -25,7 +25,7 @@
     </div>
 </header>
 
-<div id="app" class="container">
+<div id="app" class="container" v-cloak>
 
     <!-- COLONNE DE GAUCHE : INVENTAIRE -->
     <div class="sidebar">
@@ -80,7 +80,7 @@
     </div>
 
     <!-- POPUP DE RÉCUPÉRATION D'OBJET -->
-    <div v-if="popupVisible" class="objet-popup-overlay" @click="closePopup">
+    <div v-if="popupVisible && popupMessage" class="objet-popup-overlay" @click="closePopup">
         <div class="objet-popup" @click.stop>
             <button class="popup-close" @click="closePopup">×</button>
             <div class="popup-content">
