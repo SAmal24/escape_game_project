@@ -52,17 +52,19 @@ Flight::route('/jeu', function() {
 
 // ----------------------------------------------------
 // API : GET api/objets
-// Renvoie tous les objets visibles au démarrage du jeu
+// Renvoie tous les objets avec leurs informations
 // ----------------------------------------------------
 Flight::route('GET /api/objets', function() {
     $conn = Flight::get('db');
 
     $sql = "
         SELECT o.id, o.nom, o.type_objet, o.icone, o.zoom_min,
+               o.code_necessaire, o.id_objet_blocant, o.indice,
+               o.charge_au_depart,
                ST_X(p.geom) AS lon, ST_Y(p.geom) AS lat
         FROM objets o
         JOIN points p ON o.id_point = p.id
-        WHERE o.charge_au_depart = TRUE
+        ORDER BY o.id
     ";
 
     $res = pg_query($conn, $sql);

@@ -10,7 +10,7 @@ const app = Vue.createApp({
             markersLayer: null,
             heatmapLayer: null,
             inventaire: [],
-            objetsDepart: [],
+            objets: [],
             heatmapActive: false,
             pseudo: joueurPseudo,
             searchLayer: null, 
@@ -19,6 +19,16 @@ const app = Vue.createApp({
             objetFeatures: {}, // Stocker les features pour pouvoir les retirer (objet au lieu de Map pour la réactivité Vue)
             popupVisible: false,
             popupMessage: '',
+            objetIndiceActuel: null,
+            indiceActuel: '',
+            historiqueIndices: [],
+            numeroEtapeCourante: 1,
+            codePrompt: {
+                visible: false,
+                objet: null,
+                valeur: '',
+                erreur: ''
+            }
         };
     },
 
@@ -64,6 +74,16 @@ const app = Vue.createApp({
                     zoom: 12
                 })
             });
+
+            this.map.on("singleclick", evt => {
+                this.map.forEachFeatureAtPixel(evt.pixel, (feature => {
+                    const objetData = feature.get("data");
+                    if (objetData && objetData.type_objet) {
+                        this.onClickObjet(objetData);
+                        return true;
+                    }
+                }));
+            });
         },
 
         // -----------------------------------------
@@ -73,78 +93,243 @@ const app = Vue.createApp({
             fetch("/api/objets")
                 .then(res => res.json())
                 .then(objets => {
-                    this.objetsDepart = objets;
-                    this.placeMarkers(objets);
+                    this.objets = objets.map(obj => ({
+                        ...obj,
+                        visible: !!obj.charge_au_depart,
+                        ramasse: false
+                    }));
+                    this.initialiserObjets();
                 });
         },
 
         // -----------------------------------------
         // Afficher les marqueurs sur la carte
         // -----------------------------------------
-        placeMarkers(objets) {
-            objets.forEach(o => {
-                const feature = new ol.Feature({
-                    geometry: new ol.geom.Point(
-                        ol.proj.fromLonLat([o.lon, o.lat])
-                    ),
-                    data: o
-                });
-
-                feature.setStyle(new ol.style.Style({
-                    image: new ol.style.Icon({
-                        src: "/public/img/icons/" + o.icone,
-                        scale: 0.08,
-                        anchor: [0.5, 1]
-                    })
-                }));
-
-                this.markersLayer.getSource().addFeature(feature);
-                
-                // Stocker la feature pour pouvoir la retirer plus tard
-                this.objetFeatures[o.id] = feature;
+        initialiserObjets() {
+            this.objets.forEach(objet => {
+                if (objet.visible) {
+                    this.ajouterMarqueurObjet(objet);
+                }
             });
 
-            // Clic sur un objet
-            this.map.on("singleclick", evt => {
-                this.map.forEachFeatureAtPixel(evt.pixel, (f => {
-                    const objetData = f.get("data");
-                    if (objetData) {
-                        this.onClickObjet(objetData, f);
-                    }
-                }));
+            const premier = this.trouverPremierObjet();
+            if (premier) {
+                this.definirIndiceCourant(premier);
+            } else {
+                this.indiceActuel = "Explore la carte pour trouver des indices.";
+                this.objetIndiceActuel = null;
+            }
+        },
+
+        ajouterMarqueurObjet(objet) {
+            if (!objet.visible || objet.ramasse || this.objetFeatures[objet.id]) {
+                return;
+            }
+
+            const feature = new ol.Feature({
+                geometry: new ol.geom.Point(
+                    ol.proj.fromLonLat([objet.lon, objet.lat])
+                ),
+                data: objet
             });
+
+            feature.setStyle(new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: "/public/img/icons/" + objet.icone,
+                    scale: 0.08,
+                    anchor: [0.5, 1]
+                })
+            }));
+
+            this.markersLayer.getSource().addFeature(feature);
+            this.objetFeatures[objet.id] = feature;
+        },
+
+        retirerMarqueurObjet(objetId) {
+            const feature = this.objetFeatures[objetId];
+            if (!feature) {
+                return;
+            }
+            this.markersLayer.getSource().removeFeature(feature);
+            delete this.objetFeatures[objetId];
         },
 
         // -----------------------------------------
         // Gestion du clic sur un objet
         // -----------------------------------------
-        onClickObjet(objet, feature) {
-            // TYPE : récupérable
-            if (objet.type_objet === "recuperable") {
-                // Vérifier si l'objet n'est pas déjà dans l'inventaire
-                const dejaDansInventaire = this.inventaire.some(item => item.id === objet.id);
-                
-                if (dejaDansInventaire) {
-                    return; // Ne rien faire si déjà récupéré
+        onClickObjet(objet) {
+            if (!objet || objet.ramasse) {
+                return;
+            }
+
+            // Vérifier si un objet débloquant est requis
+            if (objet.id_objet_blocant) {
+                const blocantPossede = this.inventaire.some(item => item.id === objet.id_objet_blocant);
+                if (!blocantPossede) {
+                    const nomBlocant = this.getNomObjet(objet.id_objet_blocant);
+                    this.showInfoMessage(`Impossible d'accéder à ${objet.nom} sans ${nomBlocant}.`);
+                    return;
                 }
+            }
 
-                // Retirer le marqueur de la carte
-                if (feature) {
-                    this.markersLayer.getSource().removeFeature(feature);
-                } else if (this.objetFeatures[objet.id]) {
-                    const featureToRemove = this.objetFeatures[objet.id];
-                    this.markersLayer.getSource().removeFeature(featureToRemove);
-                    delete this.objetFeatures[objet.id];
-                }
+            // Vérifier les objets verrouillés par code
+            if (objet.type_objet === "code" || objet.type_objet === "bloque_code") {
+                this.ouvrirCodePopup(objet);
+                return;
+            }
 
-                // Ajouter à l'inventaire
-                this.inventaire.push(objet);
+            this.recupererObjet(objet);
+        },
 
-                // Afficher le message de récupération
-                this.showObjetMessage(objet);
+        recupererObjet(objet) {
+            const dejaDansInventaire = this.inventaire.some(item => item.id === objet.id);
+            if (dejaDansInventaire) {
+                return;
+            }
+
+            this.retirerMarqueurObjet(objet.id);
+            objet.ramasse = true;
+            this.inventaire.push(objet);
+            this.showObjetMessage(objet);
+            this.mettreAJourIndicesApresRecuperation(objet);
+            this.deverrouillerObjetsDependants(objet);
+        },
+
+        deverrouillerObjetsDependants(objet) {
+            const nouveauxObjets = this.objets.filter(o => !o.ramasse && !o.visible && o.id_objet_blocant === objet.id);
+            nouveauxObjets.forEach(obj => {
+                obj.visible = true;
+                this.ajouterMarqueurObjet(obj);
+            });
+
+            if (!this.objetIndiceActuel && nouveauxObjets.length > 0) {
+                this.definirIndiceCourant(nouveauxObjets[0]);
+            }
+        },
+
+        mettreAJourIndicesApresRecuperation(objet) {
+            if (this.objetIndiceActuel && this.objetIndiceActuel.id === objet.id) {
+                this.historiqueIndices.push({
+                    objetId: objet.id,
+                    titre: objet.nom,
+                    texte: this.obtenirTexteIndice(objet),
+                    etape: this.numeroEtapeCourante
+                });
+                this.objetIndiceActuel = null;
+                this.numeroEtapeCourante += 1;
+            }
+
+            const prochain = this.trouverProchainObjet(objet);
+            if (prochain) {
+                this.definirIndiceCourant(prochain);
+            } else if (!this.objets.some(o => !o.ramasse)) {
+                this.indiceActuel = "Bravo ! Toutes les étapes sont terminées.";
+                this.objetIndiceActuel = null;
             } else {
-                // Pour les autres types d'objets, afficher un message simple
-                alert("Vous avez cliqué sur : " + objet.nom);
+                this.indiceActuel = "Cherche la suite sur la carte…";
+                this.objetIndiceActuel = null;
+            }
+        },
+
+        trouverProchainObjet(objet) {
+            const dependant = this.objets
+                .filter(o => !o.ramasse && o.id_objet_blocant === objet.id)
+                .sort((a, b) => a.id - b.id);
+
+            if (dependant.length > 0) {
+                return dependant[0];
+            }
+
+            const disponible = this.objets
+                .filter(o => !o.ramasse && o.visible)
+                .sort((a, b) => a.id - b.id);
+
+            if (disponible.length > 0) {
+                return disponible[0];
+            }
+
+            return this.objets.find(o => !o.ramasse) || null;
+        },
+
+        trouverPremierObjet() {
+            const objetsDepart = this.objets.filter(o => o.charge_au_depart);
+            if (objetsDepart.length === 0) {
+                return null;
+            }
+
+            const recup = objetsDepart
+                .filter(o => o.type_objet === "recuperable")
+                .sort((a, b) => a.id - b.id);
+
+            if (recup.length > 0) {
+                return recup[0];
+            }
+
+            return objetsDepart.sort((a, b) => a.id - b.id)[0];
+        },
+
+        definirIndiceCourant(objet) {
+            this.objetIndiceActuel = objet;
+            this.indiceActuel = this.obtenirTexteIndice(objet);
+        },
+
+        obtenirTexteIndice(objet) {
+            if (objet.indice && objet.indice.trim().length > 0) {
+                return objet.indice;
+            }
+            return `Localise ${objet.nom} pour poursuivre l'aventure.`;
+        },
+
+        getNomObjet(id) {
+            const objet = this.objets.find(o => o.id === id);
+            return objet ? objet.nom : "l'objet requis";
+        },
+
+        showInfoMessage(message) {
+            this.popupMessage = message;
+            this.popupVisible = true;
+
+            setTimeout(() => {
+                this.popupVisible = false;
+                this.popupMessage = '';
+            }, 2500);
+        },
+
+        ouvrirCodePopup(objet) {
+            this.codePrompt = {
+                visible: true,
+                objet,
+                valeur: '',
+                erreur: ''
+            };
+        },
+
+        fermerCodePopup() {
+            this.codePrompt = {
+                visible: false,
+                objet: null,
+                valeur: '',
+                erreur: ''
+            };
+        },
+
+        validerCode() {
+            if (!this.codePrompt.objet) {
+                return;
+            }
+
+            const saisie = (this.codePrompt.valeur || "").trim();
+            if (!saisie) {
+                this.codePrompt.erreur = "Entre un code pour continuer.";
+                return;
+            }
+
+            const codeAttendu = this.codePrompt.objet.code_necessaire;
+            if (codeAttendu && saisie === codeAttendu) {
+                this.recupererObjet(this.codePrompt.objet);
+                this.fermerCodePopup();
+            } else {
+                this.codePrompt.erreur = "Code incorrect. Réessaie !";
             }
         },
 

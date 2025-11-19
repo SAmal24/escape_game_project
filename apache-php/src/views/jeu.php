@@ -6,6 +6,11 @@
     <meta charset="UTF-8">
     <title>Hakimi Quest - Jeu</title>
 
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- OpenLayers -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css">
 
@@ -17,7 +22,7 @@
 <body>
 
 <header class="header">
-    <h1 class="title">⚡ Hakimi Quest</h1>
+    <h1 class="title"> Hakimi & PSG Quest</h1>
     <p class="subtitle">« Paris t'attend, jeune Padawan du Parc des Princes »</p>
      <div class="top-right">
         <span class="user-display">👤 <?php echo htmlspecialchars($pseudo); ?></span>
@@ -29,7 +34,7 @@
 
     <!-- COLONNE DE GAUCHE : INVENTAIRE -->
     <div class="sidebar">
-        <h2>🎒 Inventaire</h2>
+        <h2> Inventaire</h2>
 
         <div v-if="inventaire.length === 0" class="empty">
             Aucun objet trouvé...
@@ -48,7 +53,7 @@
         <div class="cheat-section">
             <label>
                 <input type="checkbox" v-model="heatmapActive" @change="toggleHeatmap">
-                🔥 Mode triche (Heatmap)
+                 Mode triche (Heatmap)
             </label>
         </div>
     </div>
@@ -64,7 +69,7 @@
                     placeholder="Rechercher un lieu ou une adresse..."
                     class="search-input"
                 >
-                <button type="submit" class="search-btn">🔍</button>
+                <button type="submit" class="search-btn">Search</button>
                 <div v-if="searchResults.length > 0" class="search-results">
                     <div 
                         v-for="(result, index) in searchResults" 
@@ -77,6 +82,31 @@
                 </div>
             </form>
         </div>
+
+        <!-- PANNEAU D'INDICES -->
+        <div class="hint-panel">
+            <div class="hint-header">
+                <h3> Indices</h3>
+                <span class="step-pill" v-if="numeroEtapeCourante > 0">Étape {{ numeroEtapeCourante }}</span>
+            </div>
+            <div class="hint-current" v-if="indiceActuel">
+                <p class="hint-title">{{ objetIndiceActuel ? objetIndiceActuel.nom : 'Objectif' }}</p>
+                <p class="hint-text">{{ indiceActuel }}</p>
+            </div>
+            <p v-else class="hint-placeholder">
+                Aucun indice pour l'instant. Explore la carte !
+            </p>
+
+            <div class="hint-history" v-if="historiqueIndices.length > 0">
+                <h4>Étapes terminées</h4>
+                <ul>
+                    <li v-for="indice in historiqueIndices" :key="indice.objetId">
+                        <strong>{{ indice.titre }}</strong>
+                        <span>{{ indice.texte }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <!-- POPUP DE RÉCUPÉRATION D'OBJET -->
@@ -88,10 +118,34 @@
             </div>
         </div>
     </div>
+
+    <!-- POPUP CODE -->
+    <div v-if="codePrompt.visible" class="code-popup-overlay" @click="fermerCodePopup">
+        <div class="code-popup" @click.stop>
+            <button class="popup-close" @click="fermerCodePopup">×</button>
+            <h3>{{ codePrompt.objet ? codePrompt.objet.nom : 'Code requis' }}</h3>
+            <p class="code-popup-text">
+                Entre le code pour déverrouiller cet objet.
+            </p>
+            <input 
+                type="text" 
+                v-model="codePrompt.valeur" 
+                maxlength="10"
+                class="code-input"
+                placeholder="••••"
+                @keyup.enter="validerCode"
+            >
+            <p v-if="codePrompt.erreur" class="code-error">{{ codePrompt.erreur }}</p>
+            <div class="code-actions">
+                <button class="btn primary" @click="validerCode">Valider</button>
+                <button class="btn ghost" @click="fermerCodePopup">Annuler</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer class="footer">
-    <p>💙 « Comme Hakimi, trouve toujours la passe décisive dans les rues de Paris » 💙</p>
+    <p> « Comme Hakimi, trouve toujours la passe décisive dans les rues de Paris » </p>
 </footer>
 
 <script>
