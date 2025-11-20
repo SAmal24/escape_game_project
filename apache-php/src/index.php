@@ -95,6 +95,114 @@ Flight::route('GET /api/objets/@id', function($id) {
     Flight::json($objet);
 });
 
+// ----------------------------------------------------
+// API : POST api/scores
+// Sauvegarde ou met à jour le score d'un joueur
+// ----------------------------------------------------
+Flight::route('POST /api/scores', function() {
+    $conn = Flight::get('db');
+    $data = json_decode(Flight::request()->getBody(), true);
+    
+    $pseudo = $data['pseudo'] ?? '';
+    $score = intval($data['score'] ?? 0);
+    
+    if (empty($pseudo) || $score < 0) {
+        Flight::json(['error' => 'Données invalides'], 400);
+        return;
+    }
+    
+    // Insérer ou mettre à jour le score (cumul des points)
+    $upsertSql = "
+        INSERT INTO scores (pseudo, score)
+        VALUES ($1, $2)
+        ON CONFLICT (pseudo)
+        DO UPDATE SET
+            score = scores.score + EXCLUDED.score,
+            date_partie = CURRENT_TIMESTAMP
+        RETURNING id, score
+    ";
+    
+    $result = @pg_query_params($conn, $upsertSql, [$pseudo, $score]);
+    
+    if ($result === false) {
+        $errorMessage = pg_last_error($conn);
+        error_log("Erreur UPSERT scores: " . $errorMessage);
+
+        // Fallback manuel si la contrainte UNIQUE n'existe pas encore
+        $checkSql = "SELECT id, score FROM scores WHERE pseudo = $1 ORDER BY date_partie DESC LIMIT 1";
+        $checkResult = pg_query_params($conn, $checkSql, [$pseudo]);
+        $existing = pg_fetch_assoc($checkResult);
+
+        if ($existing) {
+            $newScore = intval($existing['score']) + $score;
+            $updateSql = "UPDATE scores SET score = $1, date_partie = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, score";
+            $updateResult = pg_query_params($conn, $updateSql, [$newScore, $existing['id']]);
+            $row = pg_fetch_assoc($updateResult);
+        } else {
+            $insertSql = "INSERT INTO scores (pseudo, score) VALUES ($1, $2) RETURNING id, score";
+            $insertResult = pg_query_params($conn, $insertSql, [$pseudo, $score]);
+            $row = pg_fetch_assoc($insertResult);
+        }
+    } else {
+        $row = pg_fetch_assoc($result);
+    }
+
+    if (!$row) {
+        Flight::json(['error' => 'Impossible de sauvegarder le score'], 500);
+        return;
+    }
+
+    Flight::json([
+        'success' => true,
+        'id' => intval($row['id']),
+        'score' => intval($row['score'])
+    ]);
+});
+
+// ----------------------------------------------------
+// API : GET api/scores/{pseudo}
+// Récupère le score cumulé d'un joueur
+// ----------------------------------------------------
+Flight::route('GET /api/scores/@pseudo', function($pseudo) {
+    $conn = Flight::get('db');
+
+    $sql = "SELECT score FROM scores WHERE pseudo = $1 LIMIT 1";
+    $result = pg_query_params($conn, $sql, [$pseudo]);
+    $row = pg_fetch_assoc($result);
+
+    if ($row) {
+        Flight::json([
+            'pseudo' => $pseudo,
+            'score' => intval($row['score'])
+        ]);
+    } else {
+        Flight::json([
+            'pseudo' => $pseudo,
+            'score' => 0
+        ]);
+    }
+});
+
+// ----------------------------------------------------
+// API : GET api/scores
+// Récupère le classement des scores
+// ----------------------------------------------------
+Flight::route('GET /api/scores', function() {
+    $conn = Flight::get('db');
+    
+    $sql = "
+        SELECT id, pseudo, score, date_partie
+        FROM scores
+        ORDER BY score DESC, date_partie DESC
+        LIMIT 20
+    ";
+    
+    $result = pg_query($conn, $sql);
+    $scores = pg_fetch_all($result) ?: [];
+    
+    Flight::json($scores);
+});
+
 
 
 // ----------------------------------------------------

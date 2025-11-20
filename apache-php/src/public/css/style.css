@@ -30,6 +30,12 @@ body {
 .container {
     display: flex;
     height: calc(100vh - 160px);
+    position: relative;
+}
+
+/* Quand aucun scénario n'est choisi, le container prend toute la page */
+.container:has(.scenario-selection-overlay) {
+    height: 100vh;
 }
 
 .sidebar {
@@ -453,5 +459,212 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* ============================================
+   SÉLECTION DE SCÉNARIO
+   ============================================ */
+
+.scenario-selection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 30, 90, 0.95), rgba(3, 4, 15, 0.98));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    animation: fadeIn 0.5s ease;
+    width: 100vw;
+    height: 100vh;
+}
+
+.scenario-selection {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 900px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    text-align: center;
+}
+
+.scenario-selection h2 {
+    color: #001f5b;
+    font-size: 2em;
+    margin-bottom: 30px;
+}
+
+.scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.scenario-card {
+    background: linear-gradient(135deg, #f5f7fa, #ffffff);
+    border: 2px solid #e0e6ed;
+    border-radius: 15px;
+    padding: 30px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.scenario-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 31, 91, 0.2);
+    border-color: #001f5b;
+}
+
+.scenario-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.scenario-card h3 {
+    color: #001f5b;
+    font-size: 1.3em;
+    margin: 10px 0;
+}
+
+.scenario-card p {
+    color: #666;
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.scenario-objective {
+    color: #ed213a !important;
+    font-weight: 600;
+    margin-top: 10px !important;
+}
+
+/* ============================================
+   AFFICHAGE DU SCORE
+   ============================================ */
+
+.score-display {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* ============================================
+   FIN DE PARTIE
+   ============================================ */
+
+.fin-partie-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 4000;
+    animation: fadeIn 0.3s ease;
+}
+
+.fin-partie-popup {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    animation: slideUp 0.4s ease;
+}
+
+.fin-partie-popup h2 {
+    color: #001f5b;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.score-final {
+    background: linear-gradient(135deg, #001f5b, #0052cc);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin: 20px 0;
+}
+
+.score-label {
+    font-size: 1.1em;
+    margin: 0 0 10px 0;
+    opacity: 0.9;
+}
+
+.score-value {
+    font-size: 3em;
+    font-weight: bold;
+    margin: 0;
+}
+
+.classement-section {
+    margin: 30px 0;
+    text-align: left;
+}
+
+.classement-section h3 {
+    color: #001f5b;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.classement-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.classement-table thead {
+    background: #001f5b;
+    color: white;
+}
+
+.classement-table th,
+.classement-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.classement-table th {
+    font-weight: 600;
+}
+
+.classement-table tbody tr:hover {
+    background: #f5f7fa;
+}
+
+.classement-table tbody tr.current-player {
+    background: #e8f4ff;
+    font-weight: 600;
+    color: #001f5b;
+}
+
+.fin-partie-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.fin-partie-actions .btn {
+    min-width: 150px;
+    padding: 12px 24px;
 }
 

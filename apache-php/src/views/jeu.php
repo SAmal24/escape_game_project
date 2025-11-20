@@ -16,17 +16,49 @@
 </head>
 <body>
 
-<header class="header">
-    <h1 class="title"> Hakimi & PSG Quest</h1>
-    <p class="subtitle">« Paris t'attend, jeune Padawan du Parc des Princes »</p>
-     <div class="top-right">
-        <span class="user-display">👤 <?php echo htmlspecialchars($pseudo); ?></span>
-        <a href="/" class="quit-btn">Quitter</a>
+<div id="app" v-cloak>
+
+    <header class="header" v-if="scenarioChoisi">
+        <h1 class="title"> Hakimi & PSG Quest</h1>
+        <p class="subtitle">« Paris t'attend, jeune Padawan du Parc des Princes »</p>
+        <div class="top-right">
+            <span class="score-display">Score: {{ score }}</span>
+            <span class="user-display">👤 <?php echo htmlspecialchars($pseudo); ?></span>
+            <a href="/" class="quit-btn">Quitter</a>
+        </div>
+    </header>
+
+    <div class="container">
+
+    <!-- ÉCRAN DE SÉLECTION DE SCÉNARIO -->
+    <div v-if="!scenarioChoisi" class="scenario-selection-overlay">
+        <div class="scenario-selection">
+            <h2>Choisissez votre scénario</h2>
+            <div class="scenarios-grid">
+                <div class="scenario-card" @click="choisirScenario('hakimi')">
+                    <div class="scenario-icon">⚽</div>
+                    <h3>1️⃣ Hakimi Quest</h3>
+                    <p>Ouest Paris</p>
+                    <p class="scenario-objective">Objectif: Passe décisive finale</p>
+                </div>
+                <div class="scenario-card" @click="choisirScenario('messi')">
+                    <div class="scenario-icon">⭐</div>
+                    <h3>2️⃣ Messi Magic Trail</h3>
+                    <p>Paris Centre</p>
+                    <p class="scenario-objective">Objectif: La Pulga d'Or</p>
+                </div>
+                <div class="scenario-card" @click="choisirScenario('mbappe')">
+                    <div class="scenario-icon">🏃</div>
+                    <h3>3️⃣ Mbappé Speed Run</h3>
+                    <p>Nord + Centre</p>
+                    <p class="scenario-objective">Objectif: Trident de la Victoire</p>
+                </div>
+            </div>
+        </div>
     </div>
-</header>
 
-<div id="app" class="container" v-cloak>
-
+    <!-- JEU (affiché seulement si scénario choisi) -->
+    <template v-if="scenarioChoisi">
     <!-- COLONNE DE GAUCHE : INVENTAIRE -->
     <div class="sidebar">
         <h2> Inventaire</h2>
@@ -137,11 +169,50 @@
             </div>
         </div>
     </div>
-</div>
 
-<footer class="footer">
-    <p> « Comme Hakimi, trouve toujours la passe décisive dans les rues de Paris » </p>
-</footer>
+    <!-- POPUP FIN DE PARTIE -->
+    <div v-if="scenarioChoisi && finDePartie" class="fin-partie-overlay">
+        <div class="fin-partie-popup">
+            <h2>🎉 Partie terminée !</h2>
+            <div class="score-final">
+                <p class="score-label">Votre score final</p>
+                <p class="score-value">{{ score }}</p>
+            </div>
+            
+            <div class="classement-section" v-if="classement.length > 0">
+                <h3>Classement des joueurs</h3>
+                <table class="classement-table">
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Pseudo</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(entry, index) in classement" :key="entry.id" 
+                            :class="{ 'current-player': entry.pseudo === pseudo }">
+                            <td>{{ index + 1 }}</td>
+                            <td>{{ entry.pseudo }}</td>
+                            <td>{{ entry.score }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="fin-partie-actions">
+                <button class="btn primary" @click="rejouer">Oui, continuer</button>
+                <button class="btn ghost" @click="retourAccueil">Non, quitter</button>
+            </div>
+        </div>
+    </div>
+    </template>
+    </div>
+
+    <footer class="footer" v-if="scenarioChoisi">
+        <p> « Comme Hakimi, trouve toujours la passe décisive dans les rues de Paris » </p>
+    </footer>
+</div>
 
 <script>
     const joueurPseudo = "<?php echo htmlspecialchars($pseudo); ?>";

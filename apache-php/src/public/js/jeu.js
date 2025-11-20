@@ -5,12 +5,13 @@ if (typeof ol === 'undefined') {
 const app = Vue.createApp({
     data() {
         return {
-            titre: "Hakimi’s Paris Quest",
+            titre: "Hakimi's Paris Quest",
             map: null,
             markersLayer: null,
             heatmapLayer: null,
             inventaire: [],
             objets: [],
+            objetsFiltres: [], // Objets filtrés selon le scénario
             heatmapActive: false,
             pseudo: joueurPseudo,
             searchLayer: null, 
@@ -28,16 +29,63 @@ const app = Vue.createApp({
                 objet: null,
                 valeur: '',
                 erreur: ''
+            },
+            scenarioChoisi: null, // 'hakimi', 'messi', ou 'mbappe'
+            score: 0,             // Score total affiché (score sauvegardé + points de la session)
+            scoreInitial: 0,      // Score déjà enregistré en base
+            pointsSession: 0,     // Points gagnés pendant la session actuelle
+            finDePartie: false,
+            classement: [],
+            scenarioConfig: {
+                hakimi: { minId: 1, maxId: 5, objetFinal: 5, nom: 'Hakimi Quest' },
+                messi: { minId: 6, maxId: 10, objetFinal: 10, nom: 'Messi Magic Trail' },
+                mbappe: { minId: 11, maxId: 15, objetFinal: 15, nom: 'Mbappé Speed Run' }
             }
         };
     },
 
     mounted() {
-        this.initMap();
-        this.loadObjets();
+        // Le jeu sera initialisé après le choix du scénario
+        // Ne rien faire ici car scenarioChoisi est null au départ
     },
 
     methods: {
+        // -----------------------------------------
+        // Sélection de scénario
+        // -----------------------------------------
+        async choisirScenario(scenario) {
+            this.scenarioChoisi = scenario;
+            this.finDePartie = false;
+            this.pointsSession = 0;
+            // Charger le score existant du joueur
+            await this.chargerScoreInitial();
+            this.score = this.scoreInitial;
+            this.inventaire = [];
+            this.objets = [];
+            this.objetsFiltres = [];
+            this.objetFeatures = {};
+            this.historiqueIndices = [];
+            this.numeroEtapeCourante = 1;
+            this.objetIndiceActuel = null;
+            this.indiceActuel = '';
+            this.searchResults = [];
+            this.searchQuery = '';
+            
+            // Nettoyer la carte si elle existe déjà
+            if (this.map) {
+                this.map.setTarget(null);
+                this.map = null;
+            }
+            if (this.searchLayer) {
+                this.searchLayer = null;
+            }
+            
+            // Initialiser le jeu après le choix du scénario
+            this.$nextTick(() => {
+                this.initMap();
+                this.loadObjets();
+            });
+        },
 
         // -----------------------------------------
         // Initialisation de la carte OpenLayers
@@ -92,21 +140,36 @@ const app = Vue.createApp({
         },
 
         // -----------------------------------------
-        // Charger les objets depuis l’API
+        // Charger les objets depuis l'API
         // -----------------------------------------
         loadObjets() {
+            if (!this.scenarioChoisi) {
+                return;
+            }
+            
             fetch("/api/objets")
                 .then(res => res.json())
                 .then(objets => {
-                    this.objets = objets.map(obj => {
-                        const zoomValue = Number(obj.zoom_min);
-                        return {
-                            ...obj,
-                            visible: !!obj.charge_au_depart,
-                            ramasse: false,
-                            zoom_min: Number.isFinite(zoomValue) ? zoomValue : 0
-                        };
-                    });
+                    const config = this.scenarioConfig[this.scenarioChoisi];
+                    
+                    // Filtrer les objets selon le scénario
+                    this.objetsFiltres = objets
+                        .filter(obj => {
+                            const id = parseInt(obj.id);
+                            return id >= config.minId && id <= config.maxId;
+                        })
+                        .map(obj => {
+                            const zoomValue = Number(obj.zoom_min);
+                            return {
+                                ...obj,
+                                visible: !!obj.charge_au_depart,
+                                ramasse: false,
+                                zoom_min: Number.isFinite(zoomValue) ? zoomValue : 0
+                            };
+                        });
+                    
+                    // Utiliser objetsFiltres pour le jeu
+                    this.objets = this.objetsFiltres;
                     this.initialiserObjets();
                 });
         },
@@ -195,9 +258,20 @@ const app = Vue.createApp({
             this.retirerMarqueurObjet(objet.id);
             objet.ramasse = true;
             this.inventaire.push(objet);
+            
+            // Ajouter des points au score
+            const config = this.scenarioConfig[this.scenarioChoisi];
+            const objetId = parseInt(objet.id, 10);
+            const points = objetId === config.objetFinal ? 50 : 5;
+            this.pointsSession += points;
+            this.score = this.scoreInitial + this.pointsSession;
+            
             this.showObjetMessage(objet);
             this.mettreAJourIndicesApresRecuperation(objet);
             this.deverrouillerObjetsDependants(objet);
+            
+            // Vérifier si la partie est terminée
+            this.verifierFinDePartie();
         },
 
         deverrouillerObjetsDependants(objet) {
@@ -624,6 +698,164 @@ const app = Vue.createApp({
             // Vider les résultats de la liste (mais garder les marqueurs)
             this.searchResults = [];
             this.searchQuery = '';
+        },
+
+        // -----------------------------------------
+        // Vérifier si la partie est terminée
+        // -----------------------------------------
+        verifierFinDePartie() {
+            // Ne pas vérifier si aucun scénario n'est choisi ou si la partie est déjà terminée
+            if (!this.scenarioChoisi || this.finDePartie || this.objets.length === 0) {
+                return;
+            }
+            
+            const config = this.scenarioConfig[this.scenarioChoisi];
+            
+            // Vérifier que TOUS les objets du scénario sont récupérés
+            const objetsNonRecuperes = this.objets.filter(o => !o.ramasse || o.ramasse === false);
+            
+            if (objetsNonRecuperes.length > 0) {
+                // Il reste des objets à récupérer
+                return;
+            }
+            
+            // Vérifier que l'objet final est bien récupéré (double vérification)
+            const objetFinal = this.objets.find(o => parseInt(o.id) === config.objetFinal);
+            
+            if (!objetFinal || !objetFinal.ramasse) {
+                // L'objet final n'est pas récupéré
+                return;
+            }
+            
+            // Vérifier qu'au moins un objet a été récupéré (sécurité supplémentaire)
+            if (this.inventaire.length === 0) {
+                return;
+            }
+            
+            // Tous les objets sont récupérés ET l'objet final est récupéré
+            // La partie est terminée
+            this.terminerPartie();
+        },
+
+        // -----------------------------------------
+        // Terminer la partie
+        // -----------------------------------------
+        terminerPartie() {
+            this.finDePartie = true;
+            
+            // Sauvegarder le score
+            this.sauvegarderScore();
+            
+            // Charger le classement
+            this.chargerClassement();
+        },
+
+        // -----------------------------------------
+        // Sauvegarder le score
+        // -----------------------------------------
+        async sauvegarderScore() {
+            const pointsAGagner = this.pointsSession;
+            if (pointsAGagner <= 0) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/scores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pseudo: this.pseudo,
+                        score: pointsAGagner
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erreur API scores: ${response.status} ${errorText}`);
+                }
+
+                const data = await response.json();
+                if (data && typeof data.score === 'number') {
+                    this.scoreInitial = data.score;
+                    this.score = data.score;
+                    this.pointsSession = 0;
+                }
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde du score:', error);
+            }
+        },
+
+        // -----------------------------------------
+        // Charger le score existant du joueur
+        // -----------------------------------------
+        async chargerScoreInitial() {
+            try {
+                const response = await fetch(`/api/scores/${encodeURIComponent(this.pseudo)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.scoreInitial = typeof data.score === 'number' ? data.score : 0;
+                } else if (response.status === 404) {
+                    this.scoreInitial = 0;
+                } else {
+                    const errorText = await response.text();
+                    console.warn('Impossible de récupérer le score initial:', errorText);
+                    this.scoreInitial = 0;
+                }
+            } catch (error) {
+                console.error('Erreur chargement score initial:', error);
+                this.scoreInitial = 0;
+            } finally {
+                this.pointsSession = 0;
+                this.score = this.scoreInitial;
+            }
+        },
+
+        // -----------------------------------------
+        // Charger le classement
+        // -----------------------------------------
+        chargerClassement() {
+            fetch('/api/scores')
+                .then(res => res.json())
+                .then(scores => {
+                    this.classement = scores;
+                })
+                .catch(err => {
+                    console.error('Erreur lors du chargement du classement:', err);
+                });
+        },
+
+        // -----------------------------------------
+        // Rejouer (retour à la sélection de scénario)
+        // -----------------------------------------
+        rejouer() {
+            this.finDePartie = false;
+            this.scenarioChoisi = null;
+            this.pointsSession = 0;
+            this.score = this.scoreInitial;
+            this.inventaire = [];
+            this.objets = [];
+            this.objetsFiltres = [];
+            this.objetFeatures = {};
+            this.historiqueIndices = [];
+            this.numeroEtapeCourante = 1;
+            this.objetIndiceActuel = null;
+            this.indiceActuel = '';
+            this.classement = [];
+            
+            // Nettoyer la carte
+            if (this.map) {
+                this.map.setTarget(null);
+                this.map = null;
+            }
+        },
+
+        // -----------------------------------------
+        // Retour à l'accueil
+        // -----------------------------------------
+        retourAccueil() {
+            window.location.href = '/';
         },
     }
 });
