@@ -218,3 +218,240 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.hint-panel h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #001f5b;
+}
+
+.step-pill {
+    background: #001f5b;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+.hint-current {
+    background: #f3f6ff;
+    border: 1px solid #d5defa;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+.hint-title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #001f5b;
+}
+
+.hint-text {
+    margin: 6px 0 0 0;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.hint-placeholder {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0 0 10px 0;
+    font-style: italic;
+}
+
+.hint-history h4 {
+    margin: 0 0 6px 0;
+    font-size: 0.85rem;
+    color: #001f5b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.hint-history ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.hint-history li {
+    font-size: 0.8rem;
+    padding: 6px 0;
+    border-bottom: 1px solid #e6e9f5;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.hint-history li strong {
+    color: #001f5b;
+}
+
+.hint-history li span {
+    color: #333;
+}
+
+/* Style pour le marqueur de recherche */
+.search-marker-layer {
+    z-index: 100;
+}
+
+/* ============================================
+   POPUP DE RÉCUPÉRATION D'OBJET
+   ============================================ */
+
+.objet-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.objet-popup {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+.popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.popup-close:hover {
+    color: #333;
+}
+
+.popup-content {
+    text-align: center;
+}
+
+.popup-message {
+    font-size: 18px;
+    color: #333;
+    margin: 0;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+.code-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2100;
+}
+
+.code-popup {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px;
+    width: 360px;
+    max-width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+    text-align: center;
+}
+
+.code-popup-text {
+    margin: 0 0 14px 0;
+    color: #444;
+}
+
+.code-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    text-align: center;
+    border: 2px solid #d5defa;
+    border-radius: 10px;
+    letter-spacing: 4px;
+    outline: none;
+}
+
+.code-error {
+    color: #d7263d;
+    font-size: 0.9rem;
+    margin: 8px 0 0 0;
+}
+
+.code-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn.primary {
+    background: #001f5b;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0,31,91,0.25);
+}
+
+.btn.ghost {
+    background: transparent;
+    border: 1px solid #c5cbe6;
+    color: #001f5b;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

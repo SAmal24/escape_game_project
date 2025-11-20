@@ -84,6 +84,11 @@ const app = Vue.createApp({
                     }
                 }));
             });
+
+            // Mettre à jour la visibilité des objets à chaque changement de zoom
+            this.map.getView().on('change:resolution', () => {
+                this.mettreAJourVisibiliteSelonZoom();
+            });
         },
 
         // -----------------------------------------
@@ -93,11 +98,15 @@ const app = Vue.createApp({
             fetch("/api/objets")
                 .then(res => res.json())
                 .then(objets => {
-                    this.objets = objets.map(obj => ({
-                        ...obj,
-                        visible: !!obj.charge_au_depart,
-                        ramasse: false
-                    }));
+                    this.objets = objets.map(obj => {
+                        const zoomValue = Number(obj.zoom_min);
+                        return {
+                            ...obj,
+                            visible: !!obj.charge_au_depart,
+                            ramasse: false,
+                            zoom_min: Number.isFinite(zoomValue) ? zoomValue : 0
+                        };
+                    });
                     this.initialiserObjets();
                 });
         },
@@ -106,11 +115,7 @@ const app = Vue.createApp({
         // Afficher les marqueurs sur la carte
         // -----------------------------------------
         initialiserObjets() {
-            this.objets.forEach(objet => {
-                if (objet.visible) {
-                    this.ajouterMarqueurObjet(objet);
-                }
-            });
+            this.mettreAJourVisibiliteSelonZoom();
 
             const premier = this.trouverPremierObjet();
             if (premier) {
@@ -199,7 +204,7 @@ const app = Vue.createApp({
             const nouveauxObjets = this.objets.filter(o => !o.ramasse && !o.visible && o.id_objet_blocant === objet.id);
             nouveauxObjets.forEach(obj => {
                 obj.visible = true;
-                this.ajouterMarqueurObjet(obj);
+                this.mettreAJourVisibilitePourObjet(obj);
             });
 
             if (!this.objetIndiceActuel && nouveauxObjets.length > 0) {
@@ -369,6 +374,37 @@ const app = Vue.createApp({
         // -----------------------------------------
         toggleHeatmap() {
             this.heatmapLayer.setVisible(this.heatmapActive);
+        },
+
+        // -----------------------------------------
+        // Gestion visibilité selon zoom
+        // -----------------------------------------
+        mettreAJourVisibiliteSelonZoom() {
+            if (!this.map) {
+                return;
+            }
+
+            const zoomActuel = this.map.getView().getZoom();
+
+            this.objets.forEach(objet => {
+                this.mettreAJourVisibilitePourObjet(objet, zoomActuel);
+            });
+        },
+
+        mettreAJourVisibilitePourObjet(objet, zoomCourant = null) {
+            if (!this.map) {
+                return;
+            }
+
+            const zoomActuel = zoomCourant !== null ? zoomCourant : this.map.getView().getZoom();
+            const zoomMin = typeof objet.zoom_min === 'number' ? objet.zoom_min : 0;
+            const doitEtreVisible = objet.visible && !objet.ramasse && zoomActuel >= zoomMin;
+
+            if (doitEtreVisible) {
+                this.ajouterMarqueurObjet(objet);
+            } else {
+                this.retirerMarqueurObjet(objet.id);
+            }
         },
 
         // -----------------------------------------
