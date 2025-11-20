@@ -14,6 +14,8 @@ const app = Vue.createApp({
             objets: [],
             objetsFiltres: [], // Objets filtrés selon le scénario
             heatmapActive: false,
+            cheatUsedEver: false,
+            cheatActiveObjectId: null,
             pseudo: joueurPseudo,
             searchLayer: null, 
             searchQuery: '',
@@ -58,7 +60,10 @@ const app = Vue.createApp({
             this.scenarioChoisi = scenario;
             this.finDePartie = false;
             this.pointsSession = 0;
+            this.heatmapActive = false;
             this.codesInventaire = [];
+            this.cheatUsedEver = false;
+            this.cheatActiveObjectId = null;
             // Charger le score existant du joueur
             await this.chargerScoreInitial();
             this.score = this.scoreInitial;
@@ -103,6 +108,7 @@ const app = Vue.createApp({
                     url: "http://localhost:8080/geoserver/hakimi/wms",
                     params: {
                         "LAYERS": "hakimi:points",
+                        "STYLES": "heatmap_points",
                         "TILED": true
                     }
                 }),
@@ -162,8 +168,10 @@ const app = Vue.createApp({
                         })
                         .map(obj => {
                             const zoomValue = Number(obj.zoom_min);
+                            const pointId = Number(obj.id_point);
                             return {
                                 ...obj,
+                                id_point: Number.isFinite(pointId) ? pointId : null,
                                 visible: !!obj.charge_au_depart,
                                 ramasse: false,
                                 zoom_min: Number.isFinite(zoomValue) ? zoomValue : 0
@@ -265,14 +273,16 @@ const app = Vue.createApp({
             this.retirerMarqueurObjet(objet.id);
             objet.ramasse = true;
             this.inventaire.push(objet);
-            
-            this.attribuerPointsPourObjet(objet);
+
+            const tricheActiveLorsRecuperation = !!this.heatmapActive;
+            this.attribuerPointsPourObjet(objet, tricheActiveLorsRecuperation);
             this.showObjetMessage(objet);
             this.mettreAJourIndicesApresRecuperation(objet);
             this.deverrouillerObjetsDependants(objet);
+            this.desactiverTricheApresRecuperation();
             
             // Vérifier si la partie est terminée
-            this.verifierFinDePartie();
+            this.verifierFinDePartie(objet);
         },
 
         recupererCode(objet) {
@@ -283,10 +293,6 @@ const app = Vue.createApp({
             this.retirerMarqueurObjet(objet.id);
             objet.ramasse = true;
 
-            if (!this.inventaire.some(item => item.id === objet.id)) {
-                this.inventaire.push(objet);
-            }
-
             const codeValeur = objet.code_necessaire || '----';
             if (!this.codesInventaire.some(code => code.id === objet.id)) {
                 this.codesInventaire.push({
@@ -296,17 +302,26 @@ const app = Vue.createApp({
                 });
             }
 
-            this.attribuerPointsPourObjet(objet);
+            const tricheActiveLorsRecuperation = !!this.heatmapActive;
+            this.attribuerPointsPourObjet(objet, tricheActiveLorsRecuperation);
             this.showCodeRevealMessage(objet, codeValeur);
             this.mettreAJourIndicesApresRecuperation(objet);
             this.deverrouillerObjetsDependants(objet);
-            this.verifierFinDePartie();
+            this.desactiverTricheApresRecuperation();
+            this.verifierFinDePartie(objet);
         },
 
-        attribuerPointsPourObjet(objet) {
+        attribuerPointsPourObjet(objet, tricheActive = false) {
             const config = this.scenarioConfig[this.scenarioChoisi];
             const objetId = parseInt(objet.id, 10);
-            const points = objetId === config.objetFinal ? 50 : 5;
+            let points = objetId === config.objetFinal
+                ? (this.cheatUsedEver ? 20 : 50)
+                : 5;
+
+            if (tricheActive) {
+                points = 1;
+            }
+
             this.pointsSession += points;
             this.score = this.scoreInitial + this.pointsSession;
         },
@@ -387,6 +402,10 @@ const app = Vue.createApp({
         definirIndiceCourant(objet) {
             this.objetIndiceActuel = objet;
             this.indiceActuel = this.obtenirTexteIndice(objet);
+            if (this.heatmapActive) {
+                this.cheatActiveObjectId = objet ? objet.id : null;
+                this.mettreAJourHeatmapPourObjet(objet);
+            }
         },
 
         obtenirTexteIndice(objet) {
@@ -495,7 +514,57 @@ const app = Vue.createApp({
         // Mode triche (Heatmap ON/OFF)
         // -----------------------------------------
         toggleHeatmap() {
-            this.heatmapLayer.setVisible(this.heatmapActive);
+            this.appliquerEtatHeatmap();
+        },
+
+        appliquerEtatHeatmap() {
+            if (!this.heatmapLayer) {
+                this.showInfoMessage("Carte indisponible pour le moment.");
+                this.heatmapActive = false;
+                return;
+            }
+
+            if (this.heatmapActive) {
+                if (!this.objetIndiceActuel) {
+                    this.showInfoMessage("Aucun indice actif à mettre en surbrillance.");
+                    this.heatmapActive = false;
+                    this.heatmapLayer.setVisible(false);
+                    this.cheatActiveObjectId = null;
+                    return;
+                }
+
+                this.cheatUsedEver = true;
+                this.cheatActiveObjectId = this.objetIndiceActuel.id;
+                this.mettreAJourHeatmapPourObjet(this.objetIndiceActuel);
+                this.heatmapLayer.setVisible(true);
+            } else {
+                this.heatmapLayer.setVisible(false);
+                this.cheatActiveObjectId = null;
+            }
+        },
+
+        mettreAJourHeatmapPourObjet(objet) {
+            if (!this.heatmapLayer || !objet) {
+                return;
+            }
+
+            const source = this.heatmapLayer.getSource();
+            const paramsActuels = source.getParams ? source.getParams() : {};
+            const pointId = objet.id_point || objet.id;
+            const nouveauxParams = {
+                ...paramsActuels,
+                'CQL_FILTER': `id=${pointId}`,
+                '_ts': Date.now()
+            };
+            source.updateParams(nouveauxParams);
+        },
+
+        desactiverTricheApresRecuperation() {
+            if (!this.heatmapActive) {
+                return;
+            }
+            this.heatmapActive = false;
+            this.appliquerEtatHeatmap();
         },
 
         // -----------------------------------------
@@ -751,38 +820,24 @@ const app = Vue.createApp({
         // -----------------------------------------
         // Vérifier si la partie est terminée
         // -----------------------------------------
-        verifierFinDePartie() {
-            // Ne pas vérifier si aucun scénario n'est choisi ou si la partie est déjà terminée
+        verifierFinDePartie(objetDeclencheur = null) {
             if (!this.scenarioChoisi || this.finDePartie || this.objets.length === 0) {
                 return;
             }
-            
+
             const config = this.scenarioConfig[this.scenarioChoisi];
-            
-            // Vérifier que TOUS les objets du scénario sont récupérés
-            const objetsNonRecuperes = this.objets.filter(o => !o.ramasse || o.ramasse === false);
-            
-            if (objetsNonRecuperes.length > 0) {
-                // Il reste des objets à récupérer
-                return;
-            }
-            
-            // Vérifier que l'objet final est bien récupéré (double vérification)
-            const objetFinal = this.objets.find(o => parseInt(o.id) === config.objetFinal);
-            
+            const objetFinal = this.objets.find(o => parseInt(o.id, 10) === config.objetFinal);
+
             if (!objetFinal || !objetFinal.ramasse) {
-                // L'objet final n'est pas récupéré
                 return;
             }
-            
-            // Vérifier qu'au moins un objet a été récupéré (sécurité supplémentaire)
-            if (this.inventaire.length === 0) {
-                return;
+
+            const finalVientDEtreRecupere = objetDeclencheur && parseInt(objetDeclencheur.id, 10) === config.objetFinal;
+            const tousObjetsRecuperes = this.objets.every(o => o.ramasse);
+
+            if (finalVientDEtreRecupere || tousObjetsRecuperes) {
+                this.terminerPartie();
             }
-            
-            // Tous les objets sont récupérés ET l'objet final est récupéré
-            // La partie est terminée
-            this.terminerPartie();
         },
 
         // -----------------------------------------
@@ -882,6 +937,9 @@ const app = Vue.createApp({
             this.scenarioChoisi = null;
             this.pointsSession = 0;
             this.score = this.scoreInitial;
+            this.heatmapActive = false;
+            this.cheatUsedEver = false;
+            this.cheatActiveObjectId = null;
             this.inventaire = [];
             this.codesInventaire = [];
             this.objets = [];
@@ -897,6 +955,10 @@ const app = Vue.createApp({
             if (this.map) {
                 this.map.setTarget(null);
                 this.map = null;
+            }
+
+            if (this.heatmapLayer) {
+                this.heatmapLayer.setVisible(false);
             }
         },
 

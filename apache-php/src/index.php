@@ -59,6 +59,7 @@ Flight::route('GET /api/objets', function() {
 
     $sql = "
         SELECT o.id, o.nom, o.type_objet, o.icone, o.zoom_min,
+               o.id_point,
                o.code_necessaire, o.id_objet_blocant, o.indice,
                o.charge_au_depart,
                ST_X(p.geom) AS lon, ST_Y(p.geom) AS lat

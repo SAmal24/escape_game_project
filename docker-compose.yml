@@ -39,6 +39,43 @@ services:
       - "8080:8080"
     volumes:
       - geoserver_data:/opt/geoserver/data_dir
+    depends_on:
+      - db
+
+  geoserver-init:
+    image: alpine:3.19
+    depends_on:
+      - geoserver
+      - db
+    environment:
+      GEOSERVER_URL: http://geoserver:8080/geoserver
+      GEOSERVER_USER: admin
+      GEOSERVER_PASS: geoserver
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: mydb
+      DB_USER: postgres
+      DB_PASS: postgres
+    volumes:
+      - ./geoserver:/scripts
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        apk add --no-cache bash curl postgresql-client
+        export PGPASSWORD="$${DB_PASS}"
+        until psql -h "$${DB_HOST}" -U "$${DB_USER}" -d "$${DB_NAME}" -c "SELECT 1" >/dev/null 2>&1; do
+          echo "⏳ Attente Postgres..."
+          sleep 3
+        done
+        until curl -sf "$${GEOSERVER_URL}/web/"; do
+          echo "⏳ Attente GeoServer..."
+          sleep 5
+        done
+        chmod +x /scripts/init_geoserver.sh
+        bash /scripts/init_geoserver.sh
+        echo "✅ GeoServer initialisé."
 
 volumes:
   pg_data:
