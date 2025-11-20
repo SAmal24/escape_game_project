@@ -74,6 +74,19 @@
             </li>
         </ul>
 
+        <div class="codes-section">
+            <h3>Codes</h3>
+            <div v-if="codesInventaire.length === 0" class="empty">
+                Aucun code trouvé...
+            </div>
+            <ul v-else class="codes-list">
+                <li v-for="code in codesInventaire" :key="code.id">
+                    <strong>{{ code.nom }}</strong>
+                    <span class="code-value">{{ code.code }}</span>
+                </li>
+            </ul>
+        </div>
+
         <hr>
 
         <!-- BOUTON TRICHE -->

@@ -10,6 +10,7 @@ const app = Vue.createApp({
             markersLayer: null,
             heatmapLayer: null,
             inventaire: [],
+            codesInventaire: [],
             objets: [],
             objetsFiltres: [], // Objets filtrés selon le scénario
             heatmapActive: false,
@@ -46,7 +47,7 @@ const app = Vue.createApp({
 
     mounted() {
         // Le jeu sera initialisé après le choix du scénario
-        // Ne rien faire ici car scenarioChoisi est null au départ
+        // On va juste initialiser la carte et les objets
     },
 
     methods: {
@@ -57,6 +58,7 @@ const app = Vue.createApp({
             this.scenarioChoisi = scenario;
             this.finDePartie = false;
             this.pointsSession = 0;
+            this.codesInventaire = [];
             // Charger le score existant du joueur
             await this.chargerScoreInitial();
             this.score = this.scoreInitial;
@@ -241,7 +243,12 @@ const app = Vue.createApp({
             }
 
             // Vérifier les objets verrouillés par code
-            if (objet.type_objet === "code" || objet.type_objet === "bloque_code") {
+            if (objet.type_objet === "code") {
+                this.recupererCode(objet);
+                return;
+            }
+
+            if (objet.type_objet === "bloque_code") {
                 this.ouvrirCodePopup(objet);
                 return;
             }
@@ -259,19 +266,49 @@ const app = Vue.createApp({
             objet.ramasse = true;
             this.inventaire.push(objet);
             
-            // Ajouter des points au score
-            const config = this.scenarioConfig[this.scenarioChoisi];
-            const objetId = parseInt(objet.id, 10);
-            const points = objetId === config.objetFinal ? 50 : 5;
-            this.pointsSession += points;
-            this.score = this.scoreInitial + this.pointsSession;
-            
+            this.attribuerPointsPourObjet(objet);
             this.showObjetMessage(objet);
             this.mettreAJourIndicesApresRecuperation(objet);
             this.deverrouillerObjetsDependants(objet);
             
             // Vérifier si la partie est terminée
             this.verifierFinDePartie();
+        },
+
+        recupererCode(objet) {
+            if (!objet || objet.ramasse) {
+                return;
+            }
+
+            this.retirerMarqueurObjet(objet.id);
+            objet.ramasse = true;
+
+            if (!this.inventaire.some(item => item.id === objet.id)) {
+                this.inventaire.push(objet);
+            }
+
+            const codeValeur = objet.code_necessaire || '----';
+            if (!this.codesInventaire.some(code => code.id === objet.id)) {
+                this.codesInventaire.push({
+                    id: objet.id,
+                    nom: objet.nom,
+                    code: codeValeur
+                });
+            }
+
+            this.attribuerPointsPourObjet(objet);
+            this.showCodeRevealMessage(objet, codeValeur);
+            this.mettreAJourIndicesApresRecuperation(objet);
+            this.deverrouillerObjetsDependants(objet);
+            this.verifierFinDePartie();
+        },
+
+        attribuerPointsPourObjet(objet) {
+            const config = this.scenarioConfig[this.scenarioChoisi];
+            const objetId = parseInt(objet.id, 10);
+            const points = objetId === config.objetFinal ? 50 : 5;
+            this.pointsSession += points;
+            this.score = this.scoreInitial + this.pointsSession;
         },
 
         deverrouillerObjetsDependants(objet) {
@@ -433,6 +470,17 @@ const app = Vue.createApp({
                 this.popupVisible = false;
                 this.popupMessage = ''; // Vider le message aussi
             }, 3000);
+        },
+
+        showCodeRevealMessage(objet, codeValeur) {
+            const message = `Code trouvé (${objet.nom}) : ${codeValeur}`;
+            this.popupMessage = message;
+            this.popupVisible = true;
+
+            setTimeout(() => {
+                this.popupVisible = false;
+                this.popupMessage = '';
+            }, 3500);
         },
 
         // -----------------------------------------
@@ -835,6 +883,7 @@ const app = Vue.createApp({
             this.pointsSession = 0;
             this.score = this.scoreInitial;
             this.inventaire = [];
+            this.codesInventaire = [];
             this.objets = [];
             this.objetsFiltres = [];
             this.objetFeatures = {};
