@@ -9,7 +9,7 @@
     <Name>heatmap_points</Name>
     <UserStyle>
       <Title>Heatmap Points Hakimi Quest</Title>
-      <Abstract>Carte de chaleur pour indiquer l'objet actif</Abstract>
+      <Abstract>Carte de chaleur pour la triche</Abstract>
       <FeatureTypeStyle>
         <Transformation>
           <ogc:Function name="vec:Heatmap">

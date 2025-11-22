@@ -167,6 +167,7 @@ const app = Vue.createApp({
                             return id >= config.minId && id <= config.maxId;
                         })
                         .map(obj => {
+                            // Normaliser les valeurs numériques
                             const zoomValue = Number(obj.zoom_min);
                             const pointId = Number(obj.id_point);
                             return {

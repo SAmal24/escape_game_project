@@ -219,19 +219,22 @@
 </div>
 
 <script>
+    // Afficher la popup pour entrer le pseudo
     function showPopup() {
         document.getElementById("popup").style.display = "flex";
     }
 
+    // Démarrer le jeu avec le pseudo entré
     function startGame() {
         const pseudo = document.getElementById("pseudo").value.trim();
 
+        // Vérifier qu'un pseudo a été entré
         if (pseudo === "") {
             alert("Veuillez entrer un pseudo !");
             return;
         }
 
-        // Redirection avec le pseudo dans l'URL
+        // Redirection vers la page de jeu avec le pseudo dans l'URL
         window.location.href = "/jeu?pseudo=" + encodeURIComponent(pseudo);
     }
 </script>

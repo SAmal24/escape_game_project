@@ -1,20 +1,21 @@
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background: #f3f3f3;
 }
 
-/* Cacher les éléments Vue non encore montés */
 [v-cloak] {
     display: none !important;
 }
 
 .header {
-    background: linear-gradient(90deg, #001f5b, #0052cc);
+    background: linear-gradient(90deg, #001f5b, #0052cc); 
     padding: 20px;
     text-align: center;
     color: white;
-    animation: fadeIn 1s ease-out;
+    animation: fadeIn 1s ease-out; 
+
 }
 
 .title {
@@ -24,16 +25,16 @@ body {
 
 .subtitle {
     font-size: 1.1em;
-    opacity: 0.9;
+    opacity: 0.9; 
 }
+
 
 .container {
     display: flex;
-    height: calc(100vh - 160px);
+    height: calc(100vh - 160px); 
     position: relative;
 }
 
-/* Quand aucun scénario n'est choisi, le container prend toute la page */
 .container:has(.scenario-selection-overlay) {
     height: 100vh;
 }
@@ -43,7 +44,7 @@ body {
     background: white;
     border-right: 2px solid #ddd;
     padding: 15px;
-    overflow-y: auto;
+    overflow-y: auto; 
 }
 
 .inventory-list {
@@ -55,7 +56,7 @@ body {
     width: 30px;
     height: 30px;
     vertical-align: middle;
-    margin-right: 8px;
+    margin-right: 8px; 
 }
 
 .codes-section {
@@ -74,7 +75,7 @@ body {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 6px; 
 }
 
 .codes-list li {
@@ -82,47 +83,45 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 6px 8px;
-    background: #f5f7ff;
+    background: #f5f7ff; 
     border-radius: 6px;
     border: 1px solid #dbe3ff;
     font-size: 0.9em;
 }
 
 .code-value {
-    font-family: 'Courier New', monospace;
+    font-family: 'Courier New', monospace; 
     font-weight: 700;
-    color: #d7263d;
+    color: #d7263d; 
 }
 
 .map {
-    flex: 1;
+    flex: 1; 
     height: 100%;
-    min-height: 400px;
+    min-height: 400px; 
     position: relative; 
 }
 
 .empty {
-    color: #999;
+    color: #999; 
     font-style: italic;
 }
 
 .cheat-section {
     margin-top: 10px;
     padding: 10px;
-    background: #eef;
+    background: #eef; 
     border-radius: 5px;
 }
 
 .footer {
-    background: #001f5b;
+    background: #001f5b; 
     color: white;
     padding: 15px;
     text-align: center;
     font-size: 0.95em;
     animation: slideUp 1s ease-out;
 }
-
-/* Animations */
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -146,7 +145,7 @@ body {
 
 .quit-btn {
     padding: 8px 16px;
-    background: #ff4444;
+    background: #ff4444; 
     color: white;
     border-radius: 6px;
     text-decoration: none;
@@ -154,27 +153,26 @@ body {
 }
 
 .quit-btn:hover {
-    background: #cc0000;
+    background: #cc0000; 
 }
 
 .user-display {
     padding: 6px 14px;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.2); 
     border-radius: 6px;
 }
 
 
 
 
-/* FORMULAIRE DE RECHERCHE */
 
 .search-container {
     position: absolute;
     top: 10px;
     left: 35px;
-    z-index: 1000;
+    z-index: 1000; 
     width: 400px;
-    max-width: calc(100% - 40px);
+    max-width: calc(100% - 40px); 
 }
 
 .search-form {
@@ -182,15 +180,15 @@ body {
     display: flex;
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
     overflow: hidden;
 }
 
 .search-input {
-    flex: 1;
+    flex: 1; 
     padding: 12px 16px;
     border: none;
-    outline: none;
+    outline: none; 
     font-size: 14px;
     background: transparent;
 }
@@ -198,15 +196,15 @@ body {
 .search-btn {
     padding: 12px 20px;
     border: none;
-    background: #0052cc;
+    background: #0052cc; 
     color: white;
     cursor: pointer;
     font-size: 18px;
-    transition: background 0.3s;
+    transition: background 0.3s; 
 }
 
 .search-btn:hover {
-    background: #003d99;
+    background: #003d99; 
 }
 
 .search-results {
@@ -247,13 +245,13 @@ body {
     position: absolute;
     top: 20px;
     right: 30px;
-    width: 260px;
-    background: rgba(255, 255, 255, 0.95);
+    width: 260px; 
+    background: rgba(255, 255, 255, 0.95); /* Blanc presque opaque */
     border-radius: 12px;
-    box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+    box-shadow: 0 15px 45px rgba(0,0,0,0.25); 
     padding: 16px 18px;
-    z-index: 1200;
-    backdrop-filter: blur(4px);
+    z-index: 1200; 
+    backdrop-filter: blur(4px); 
 }
 
 .hint-header {
@@ -338,14 +336,9 @@ body {
     color: #333;
 }
 
-/* Style pour le marqueur de recherche */
 .search-marker-layer {
     z-index: 100;
 }
-
-/* ============================================
-   POPUP DE RÉCUPÉRATION D'OBJET
-   ============================================ */
 
 .objet-popup-overlay {
     position: fixed;
@@ -353,12 +346,12 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5); 
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
-    animation: fadeIn 0.3s ease;
+    z-index: 2000; 
+    animation: fadeIn 0.3s ease; 
 }
 
 .objet-popup {
@@ -403,8 +396,8 @@ body {
     font-size: 18px;
     color: #333;
     margin: 0;
-    line-height: 1.6;
-    font-style: italic;
+    line-height: 1.6; /* Espacement des lignes */
+    font-style: italic; /* Texte en italique pour l'effet */
 }
 
 .code-popup-overlay {
@@ -443,8 +436,8 @@ body {
     text-align: center;
     border: 2px solid #d5defa;
     border-radius: 10px;
-    letter-spacing: 4px;
-    outline: none;
+    letter-spacing: 4px; 
+    outline: none; 
 }
 
 .code-error {
@@ -467,21 +460,21 @@ body {
     padding: 10px 0;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.2s;
+    transition: transform 0.15s ease, box-shadow 0.2s; /* Animation au clic */
 }
 
 .btn:active {
-    transform: scale(0.98);
+    transform: scale(0.98); 
 }
 
 .btn.primary {
-    background: #001f5b;
+    background: #001f5b; 
     color: #fff;
-    box-shadow: 0 8px 20px rgba(0,31,91,0.25);
+    box-shadow: 0 8px 20px rgba(0,31,91,0.25); 
 }
 
 .btn.ghost {
-    background: transparent;
+    background: transparent; 
     border: 1px solid #c5cbe6;
     color: #001f5b;
 }
@@ -497,21 +490,17 @@ body {
     }
 }
 
-/* ============================================
-   SÉLECTION DE SCÉNARIO
-   ============================================ */
-
 .scenario-selection-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 30, 90, 0.95), rgba(3, 4, 15, 0.98));
+    background: linear-gradient(135deg, rgba(0, 30, 90, 0.95), rgba(3, 4, 15, 0.98)); 
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 3000;
+    z-index: 3000; 
     animation: fadeIn 0.5s ease;
     width: 100vw;
     height: 100vh;
@@ -551,9 +540,9 @@ body {
 }
 
 .scenario-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 31, 91, 0.2);
-    border-color: #001f5b;
+    transform: translateY(-5px); 
+    box-shadow: 0 15px 40px rgba(0, 31, 91, 0.2); 
+    border-color: #001f5b; 
 }
 
 .scenario-icon {
@@ -579,10 +568,6 @@ body {
     margin-top: 10px !important;
 }
 
-/* ============================================
-   AFFICHAGE DU SCORE
-   ============================================ */
-
 .score-display {
     padding: 6px 14px;
     background: rgba(255, 255, 255, 0.2);
@@ -591,21 +576,17 @@ body {
     margin-right: 10px;
 }
 
-/* ============================================
-   FIN DE PARTIE
-   ============================================ */
-
 .fin-partie-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.75); 
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 4000;
+    z-index: 4000; /* Le plus haut de tous */
     animation: fadeIn 0.3s ease;
 }
 
@@ -629,7 +610,7 @@ body {
 }
 
 .score-final {
-    background: linear-gradient(135deg, #001f5b, #0052cc);
+    background: linear-gradient(135deg, #001f5b, #0052cc); 
     color: white;
     padding: 25px;
     border-radius: 15px;
@@ -683,11 +664,11 @@ body {
 }
 
 .classement-table tbody tr:hover {
-    background: #f5f7fa;
+    background: #f5f7fa; 
 }
 
 .classement-table tbody tr.current-player {
-    background: #e8f4ff;
+    background: #e8f4ff; 
     font-weight: 600;
     color: #001f5b;
 }

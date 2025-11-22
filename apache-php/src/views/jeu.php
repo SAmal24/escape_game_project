@@ -6,9 +6,9 @@
     <meta charset="UTF-8">
     <title>Hakimi Quest - Jeu</title>
 
-    <!-- OpenLayers -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css">
 
+    <!-- <link rel="stylesheet" href="/public/css/ol.css">-->
     <link rel="stylesheet" href="/public/css/style.css">
 
 
@@ -23,7 +23,7 @@
         <p class="subtitle">« Paris t'attend, jeune Padawan du Parc des Princes »</p>
         <div class="top-right">
             <span class="score-display">Score: {{ score }}</span>
-            <span class="user-display">👤 <?php echo htmlspecialchars($pseudo); ?></span>
+            <span class="user-display"> <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($pseudo); ?></span>
             <a href="/" class="quit-btn">Quitter</a>
         </div>
     </header>
@@ -36,20 +36,20 @@
             <h2>Choisissez votre scénario</h2>
             <div class="scenarios-grid">
                 <div class="scenario-card" @click="choisirScenario('hakimi')">
-                    <div class="scenario-icon">⚽</div>
-                    <h3>1️⃣ Hakimi Quest</h3>
+                    <div class="scenario-icon"></div>
+                    <h3>1️ Hakimi Quest</h3>
                     <p>Ouest Paris</p>
-                    <p class="scenario-objective">Objectif: Passe décisive finale</p>
+                    <p class="scenario-objective">Objectif: trouver la clé d'Hakimi pour le match de la Ligue des Champions</p>
                 </div>
                 <div class="scenario-card" @click="choisirScenario('messi')">
-                    <div class="scenario-icon">⭐</div>
-                    <h3>2️⃣ Messi Magic Trail</h3>
+                    <div class="scenario-icon"></div>
+                    <h3>2 Messi Magic Trail</h3>
                     <p>Paris Centre</p>
-                    <p class="scenario-objective">Objectif: La Pulga d'Or</p>
+                    <p class="scenario-objective">Objectif: parcourir Paris en cherchant l'héritage de messi</p>
                 </div>
                 <div class="scenario-card" @click="choisirScenario('mbappe')">
-                    <div class="scenario-icon">🏃</div>
-                    <h3>3️⃣ Mbappé Speed Run</h3>
+                    <div class="scenario-icon"></div>
+                    <h3>3 Mbappé Speed Run</h3>
                     <p>Nord + Centre</p>
                     <p class="scenario-objective">Objectif: Trident de la Victoire</p>
                 </div>
