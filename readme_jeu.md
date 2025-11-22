@@ -8,7 +8,7 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 
 ## Scénario 1 : Hakimi Quest (Ouest Paris)
 
-**Objectif** : Passe décisive finale
+**Objectif** : Trouver la clé d'or d'ahakimi 
 
 ### Ordre de collecte des objets :
 
@@ -49,32 +49,37 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 - **Icône** : `golden_key.png`
 - **Action** : Termine le scénario Hakimi Quest
 
----
+### Explication du scénario
+
+**Objectif** : Collecter le **Sésame d'Hakimi** pour terminer le scénario. Le parcours traverse l'Ouest de Paris, en référence au style de jeu d'Hakimi (vitesse, passes décisives).
+
+**Parcours géographique** : Tour Eiffel → Arc de Triomphe → Trocadéro → Parc des Princes → Pont Mirabeau
+
 
 ## Scénario 2 : Messi Magic Trail (Paris Centre)
 
-**Objectif** : La Pulga d'Or
+**Objectif** : Parcourir Paris en cherchant l'héritage qu' a laissé Messi après son départ Paris
 
 ### Ordre de collecte des objets :
 
 #### 1. Balle Lumineuse
 - **Type** : Objet récupérable
 - **Emplacement** : Champs-Élysées
-- **Indice** : "Là où les rêves deviennent lumières"
+- **Indice** : "Là où la lumière danse sur l'avenue des rois, la sphère d'or attend son magicien"
 - **Icône** : `magic_ball.png`
 - **Action** : Débloque le Bracelet de Dribble
 
 #### 2. Bracelet de Dribble
 - **Type** : Objet bloqué (nécessite la Balle Lumineuse)
 - **Emplacement** : Louvre
-- **Indice** : "La beauté de l'art inspire les meilleurs dribbles"
+- **Indice** : "Sous le regard de la Joconde, le bracelet du dribbleur se cache parmi les chefs-d'œuvre"
 - **Icône** : `dribble_bracelet.png`
 - **Action** : Débloqué après avoir récupéré la Balle Lumineuse
 
 #### 3. Montre Temps Arrêté
 - **Type** : Objet code (donne un code)
 - **Emplacement** : Gare Saint-Lazare
-- **Indice** : "Son premier numéro au Barça"
+- **Indice** : "Là où les voyageurs courent contre la montre, le temps s'est figé à 8h27"
 - **Icône** : `stopped_watch.png`
 - **Code donné** : **827**
 - **Action** : Le code 827 est nécessaire pour débloquer les Gants de Magie
@@ -82,7 +87,7 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 #### 4. Gants de Magie
 - **Type** : Objet bloqué par code (nécessite le code 827)
 - **Emplacement** : Parc Monceau
-- **Indice** : "Dans un coin calme, la magie continue"
+- **Indice** : "Dans l'écrin de verdure où les enfants rient, la magie se niche près de l'eau tranquille"
 - **Icône** : `magic_gloves.png`
 - **Code requis** : **827** (donné par la Montre Temps Arrêté)
 - **Action** : Débloque La Pulga d'Or
@@ -90,11 +95,16 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 #### 5. La Pulga d'Or (Objet Final)
 - **Type** : Objet final
 - **Emplacement** : Stade Charléty
-- **Indice** : "Là où la vitesse est reine"
+- **Indice** : "Là où la piste ovale encercle l'effort, la petite puce d'or couronne le talent pur"
 - **Icône** : `golden_pulga.png`
 - **Action** : Termine le scénario Messi Magic Trail
 
----
+### Explication du scénario
+
+**Objectif** : Collecter la **Pulga d'Or** pour terminer le scénario. Le parcours traverse le Centre de Paris, en référence au style de jeu de Messi (magie, dribbles, technique).
+
+**Parcours géographique** : Champs-Élysées → Louvre → Gare Saint-Lazare → Parc Monceau → Stade Charléty
+
 
 ## Scénario 3 : Mbappé Speed Run (Nord + Centre)
 
@@ -105,21 +115,21 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 #### 1. Chaussures Éclairs
 - **Type** : Objet récupérable
 - **Emplacement** : La Villette
-- **Indice** : "Le sprint commence au Nord"
+- **Indice** : "Là où la science rencontre l'art, les éclairs reposent près de la sphère miroir"
 - **Icône** : `thunder_shoes.png`
 - **Action** : Débloque le Ballon Supersonique
 
 #### 2. Ballon Supersonique
 - **Type** : Objet bloqué (nécessite les Chaussures Éclairs)
 - **Emplacement** : Sacré-Cœur
-- **Indice** : "Là-haut, Paris à tes pieds"
+- **Indice** : "Au point culminant où les cœurs s'élèvent, le globe céleste défie la gravité"
 - **Icône** : `super_ball.png`
 - **Action** : Débloqué après avoir récupéré les Chaussures Éclairs
 
 #### 3. Ticket Secret
 - **Type** : Objet code (donne un code)
 - **Emplacement** : Châtelet
-- **Indice** : "Son numéro en EDF"
+- **Indice** : "Dans le carrefour souterrain des arts vivants, le sésame secret ouvre les coulisses"
 - **Icône** : `secret_ticket.png`
 - **Code donné** : **10**
 - **Action** : Le code 10 est nécessaire pour débloquer le Jeton de Compétition
@@ -127,7 +137,7 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 #### 4. Jeton de Compétition
 - **Type** : Objet bloqué par code (nécessite le code 10)
 - **Emplacement** : Gare de Lyon
-- **Indice** : "Pour aller toujours plus loin"
+- **Indice** : "Là où les rails mènent vers le sud, le passeport des champions scintille sous l'horloge"
 - **Icône** : `competition_token.png`
 - **Code requis** : **10** (donné par le Ticket Secret)
 - **Action** : Débloque le Trident de la Victoire
@@ -135,22 +145,26 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 #### 5. Trident de la Victoire (Objet Final)
 - **Type** : Objet final
 - **Emplacement** : Place de la Concorde
-- **Indice** : "Victoire au cœur de Paris"
+- **Indice** : "Là où l'obélisque perce le ciel parisien, le sceptre du vainqueur attend son porteur"
 - **Icône** : `victory_trident.png`
 - **Action** : Termine le scénario Mbappé Speed Run
 
+### Explication du scénario
+
+**Objectif** : Collecter le **Trident de la Victoire** pour terminer le scénario. Le parcours traverse le Nord et le Centre de Paris, en référence au style de jeu de Mbappé (vitesse, puissance, victoire).
+
+**Parcours géographique** : La Villette (Nord) → Sacré-Cœur (Nord) → Châtelet (Centre) → Gare de Lyon (Centre) → Place de la Concorde (Centre)
+
+
+
 ---
+### Points communs
 
-## Récapitulatif des codes
-
-### Scénario 1 - Hakimi Quest
-- **Code 1970** : Donné par le Téléphone Cryptex, nécessaire pour la Carte d'Entraînement
-
-### Scénario 2 - Messi Magic Trail
-- **Code 827** : Donné par la Montre Temps Arrêté, nécessaire pour les Gants de Magie
-
-### Scénario 3 - Mbappé Speed Run
-- **Code 10** : Donné par le Ticket Secret, nécessaire pour le Jeton de Compétition
+- Tous les scénarios ont **5 objets** à collecter
+- Chaque scénario a un **code secret** lié au joueur
+- Les scénarios se terminent par un **objet final emblématique**
+- Le parcours couvre différentes zones de Paris
+- Les indices font référence aux lieux emblématiques parisiens
 
 ---
 

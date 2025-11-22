@@ -145,31 +145,31 @@ VALUES
 INSERT INTO objets (nom,type_objet,id_point,charge_au_depart,icone,indice)
 VALUES
 ('Balle Lumineuse','recuperable',6,TRUE,'magic_ball.png',
-'Là où les rêves deviennent lumières');
+'Là où la lumière danse sur l''avenue des rois, la sphère d''or attend son magicien');
 
 -- 2. Bracelet de Dribble (bloqué par un objet)
 INSERT INTO objets (nom,type_objet,id_objet_blocant,id_point,icone,indice)
 VALUES
 ('Bracelet de Dribble','bloque_objet',6,7,'dribble_bracelet.png',
-'La beauté de l’art inspire les meilleurs dribbles');
+'Sous le regard de la Joconde, le bracelet du dribbleur se cache parmi les chefs-d''œuvre');
 
 -- 3. Montre Temps Arrêté, il donne le code pour débloquer les gants de magie , code = 827 
 INSERT INTO objets (nom,type_objet,code_necessaire,id_point,charge_au_depart,icone,indice)
 VALUES
 ('Montre Temps Arrêté','code','827',8,TRUE,'stopped_watch.png',
-'Son premier numéro au Barça');
+'Là où les voyageurs courent contre la montre, le temps s''est figé à 8h27');
 
 -- 4. Gants de Magie (bloqué par code 827)
 INSERT INTO objets (nom,type_objet,code_necessaire,id_point,icone,indice)
 VALUES
 ('Gants de Magie','bloque_code','827',9,'magic_gloves.png',
-'Dans un coin calme, la magie continue');
+'Dans l''écrin de verdure où les enfants rient, la magie se niche près de l''eau tranquille');
 
 -- 5. La Pulga d’Or (final)
 INSERT INTO objets (nom,type_objet,id_objet_blocant,id_point,icone,indice)
 VALUES
 ('La Pulga d’Or','final',9,10,'golden_pulga.png',
-'Là où la vitesse est reine');
+'Là où la piste ovale encercle l''effort, la petite puce d''or couronne le talent pur');
 
 
 ---------------------------------------------------------
@@ -179,24 +179,24 @@ VALUES
 -- 1. Chaussures Éclairs (récupérable)
 INSERT INTO objets (nom,type_objet,id_point,charge_au_depart,icone,indice)
 VALUES ('Chaussures Éclairs','recuperable',11,TRUE,'thunder_shoes.png',
-'Le sprint commence au Nord');
+'Là où la science rencontre l''art, les éclairs reposent près de la sphère miroir');
 
 -- 2. Ballon Supersonique (bloqué par un objet)
 INSERT INTO objets (nom,type_objet,id_objet_blocant,id_point,icone,indice)
 VALUES ('Ballon Supersonique','bloque_objet',11,12,'super_ball.png',
-'Là-haut, Paris à tes pieds');
+'Au point culminant où les cœurs s''élèvent, le globe céleste défie la gravité');
 
 -- 3. Ticket Secret, il donne le code pour débloquer le jeton de compétition , code = 10 
 INSERT INTO objets (nom,type_objet,code_necessaire,id_point,charge_au_depart,icone,indice)
 VALUES ('Ticket Secret','code','10',13,TRUE,'secret_ticket.png',
-'Son numéro en EDF');
+'Dans le carrefour souterrain des arts vivants, le sésame secret ouvre les coulisses');
 
 -- 4. Jeton de Compétition (bloqué par code 10)
 INSERT INTO objets (nom,type_objet,code_necessaire,id_point,icone,indice)
 VALUES ('Jeton de Compétition','bloque_code','10',14,'competition_token.png',
-'Pour aller toujours plus loin');
+'Là où les rails mènent vers le sud, le passeport des champions scintille sous l''horloge');
 
 -- 5. Trident de la Victoire (final)
 INSERT INTO objets (nom,type_objet,id_objet_blocant,id_point,icone,indice)
 VALUES ('Trident de la Victoire','final',14,15,'victory_trident.png',
-'Victoire au cœur de Paris');
+'Là où l''obélisque perce le ciel parisien, le sceptre du vainqueur attend son porteur');
