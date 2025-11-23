@@ -7,8 +7,6 @@
     <title>Hakimi Quest - Jeu</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.7.0/ol.css">
-
-    <!-- <link rel="stylesheet" href="/public/css/ol.css">-->
     <link rel="stylesheet" href="/public/css/style.css">
 
 
@@ -20,7 +18,8 @@
 
     <header class="header" v-if="scenarioChoisi">
         <h1 class="title"> Hakimi & PSG Quest</h1>
-        <p class="subtitle">« Paris t'attend, jeune Padawan du Parc des Princes »</p>
+        <p class="subtitle" v-if="objectifActuel">« {{ objectifActuel }} »</p>
+        <p class="subtitle" v-else>« Paris t'attend, jeune Padawan du Parc des Princes »</p>
         <div class="top-right">
             <span class="score-display">Score: {{ score }}</span>
             <span class="user-display"> <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($pseudo); ?></span>
@@ -30,7 +29,6 @@
 
     <div class="container">
 
-    <!-- ÉCRAN DE SÉLECTION DE SCÉNARIO -->
     <div v-if="!scenarioChoisi" class="scenario-selection-overlay">
         <div class="scenario-selection">
             <h2>Choisissez votre scénario</h2>
@@ -57,9 +55,7 @@
         </div>
     </div>
 
-    <!-- JEU (affiché seulement si scénario choisi) -->
     <template v-if="scenarioChoisi">
-    <!-- COLONNE DE GAUCHE : INVENTAIRE -->
     <div class="sidebar">
         <h2> Inventaire</h2>
 
@@ -89,7 +85,6 @@
 
         <hr>
 
-        <!-- BOUTON TRICHE -->
         <div class="cheat-section">
             <label>
                 <input type="checkbox" v-model="heatmapActive" @change="toggleHeatmap">
@@ -98,10 +93,8 @@
         </div>
     </div>
 
-    <!-- CARTE -->
     <div id="map" class="map">
-         <!-- FORMULAIRE DE RECHERCHE -->
-         <div class="search-container">
+        <div class="search-container">
             <form @submit.prevent="searchLocation" class="search-form">
                 <input 
                     type="text" 

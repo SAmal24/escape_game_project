@@ -11,9 +11,8 @@ CREATE TABLE points (
 );
 
 
----------------------------------------------------------
+
 -- TYPES D'OBJETS  , une table enumératio contenant les type d'objets 
----------------------------------------------------------
 
 DROP TABLE IF EXISTS types_objets CASCADE;
 
@@ -25,9 +24,9 @@ CREATE TABLE types_objets (
 
 
 
----------------------------------------------------------
+
 -- TABLE OBJETS, c'est la table principale du jeu
----------------------------------------------------------
+
 
 DROP TABLE IF EXISTS objets CASCADE;
 
@@ -45,9 +44,8 @@ CREATE TABLE objets (
 );
 
 
----------------------------------------------------------
+
 -- TABLE SCORES 
----------------------------------------------------------
 
 DROP TABLE IF EXISTS scores CASCADE;
 
@@ -59,9 +57,9 @@ CREATE TABLE scores (
 );
 
 
----------------------------------------------------------
+
 -- INSERTION DES données
----------------------------------------------------------
+
 --- Attention, l'ordre des isertions et important, car les id sont utilisés dans les objets 
 ---- Points de scénario 1
 INSERT INTO points (name, geom) VALUES
@@ -98,9 +96,9 @@ INSERT INTO types_objets (code, description) VALUES
 
 
 
----------------------------------------------------------
+
 -- INSERTION DES OBJETS DU JEU scénario 1
----------------------------------------------------------
+
 
 -- 1. Chaussure de Vitesse (récupérable)
 INSERT INTO objets 
@@ -137,9 +135,8 @@ VALUES
 ('Le Sésame d’Hakimi', 'final', 4, 5, 'golden_key.png');
 
 
----------------------------------------------------------
+
 -- INSERTION DES OBJETS DU JEU scénario 2
----------------------------------------------------------
 
 -- 1. Balle Lumineuse (récupérable)
 INSERT INTO objets (nom,type_objet,id_point,charge_au_depart,icone,indice)
@@ -172,9 +169,8 @@ VALUES
 'Là où la piste ovale encercle l''effort, la petite puce d''or couronne le talent pur');
 
 
----------------------------------------------------------
--- INSERTION DES OBJETS DU JEU scénario 3
----------------------------------------------------------   
+
+-- INSERTION DES OBJETS DU JEU scénario 3   
 
 -- 1. Chaussures Éclairs (récupérable)
 INSERT INTO objets (nom,type_objet,id_point,charge_au_depart,icone,indice)

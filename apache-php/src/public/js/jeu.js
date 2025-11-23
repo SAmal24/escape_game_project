@@ -1,4 +1,3 @@
-// Vérifier que ol est disponible
 if (typeof ol === 'undefined') {
     console.error('OpenLayers n\'est pas chargé !');
 }
@@ -12,7 +11,7 @@ const app = Vue.createApp({
             inventaire: [],
             codesInventaire: [],
             objets: [],
-            objetsFiltres: [], // Objets filtrés selon le scénario
+            objetsFiltres: [],
             heatmapActive: false,
             cheatUsedEver: false,
             cheatActiveObjectId: null,
@@ -20,7 +19,7 @@ const app = Vue.createApp({
             searchLayer: null, 
             searchQuery: '',
             searchResults: [],
-            objetFeatures: {}, // Stocker les features pour pouvoir les retirer (objet au lieu de Map pour la réactivité Vue)
+            objetFeatures: {},
             popupVisible: false,
             popupMessage: '',
             objetIndiceActuel: null,
@@ -33,30 +32,36 @@ const app = Vue.createApp({
                 valeur: '',
                 erreur: ''
             },
-            scenarioChoisi: null, // 'hakimi', 'messi', ou 'mbappe'
-            score: 0,             // Score total affiché (score sauvegardé + points de la session)
-            scoreInitial: 0,      // Score déjà enregistré en base
-            pointsSession: 0,     // Points gagnés pendant la session actuelle
+            scenarioChoisi: null,
+            score: 0,
+            scoreInitial: 0,
+            pointsSession: 0,
             finDePartie: false,
             classement: [],
             scenarioConfig: {
-                hakimi: { minId: 1, maxId: 5, objetFinal: 5, nom: 'Hakimi Quest' },
-                messi: { minId: 6, maxId: 10, objetFinal: 10, nom: 'Messi Magic Trail' },
-                mbappe: { minId: 11, maxId: 15, objetFinal: 15, nom: 'Mbappé Speed Run' }
-            }
+                hakimi: { minId: 1, maxId: 5, objetFinal: 5, nom: 'Hakimi Quest', objectif: 'Trouver la clé d\'or d\'Hakimi' },
+                messi: { minId: 6, maxId: 10, objetFinal: 10, nom: 'Messi Magic Trail', objectif: 'Parcourir Paris en cherchant l\'héritage qu\'a laissé Messi après son départ de Paris' },
+                mbappe: { minId: 11, maxId: 15, objetFinal: 15, nom: 'Mbappé Speed Run', objectif: 'Collecter le Trident de la Victoire' }
+            },
+            objectifScenario: ''
         };
     },
 
+    computed: {
+        objectifActuel() {
+            if (!this.scenarioChoisi) return '';
+            const config = this.scenarioConfig[this.scenarioChoisi];
+            return config ? config.objectif : '';
+        }
+    },
+
     mounted() {
-        // Le jeu sera initialisé après le choix du scénario
-        // On va juste initialiser la carte et les objets
+        // TODO: initialiser la carte ici si besoin
     },
 
     methods: {
-        // -----------------------------------------
-        // Sélection de scénario
-        // -----------------------------------------
         async choisirScenario(scenario) {
+            // console.log('scenario choisi:', scenario);
             this.scenarioChoisi = scenario;
             this.finDePartie = false;
             this.pointsSession = 0;
@@ -64,7 +69,7 @@ const app = Vue.createApp({
             this.codesInventaire = [];
             this.cheatUsedEver = false;
             this.cheatActiveObjectId = null;
-            // Charger le score existant du joueur
+            
             await this.chargerScoreInitial();
             this.score = this.scoreInitial;
             this.inventaire = [];
@@ -78,7 +83,6 @@ const app = Vue.createApp({
             this.searchResults = [];
             this.searchQuery = '';
             
-            // Nettoyer la carte si elle existe déjà
             if (this.map) {
                 this.map.setTarget(null);
                 this.map = null;
@@ -87,17 +91,14 @@ const app = Vue.createApp({
                 this.searchLayer = null;
             }
             
-            // Initialiser le jeu après le choix du scénario
             this.$nextTick(() => {
                 this.initMap();
                 this.loadObjets();
             });
         },
 
-        // -----------------------------------------
-        // Initialisation de la carte OpenLayers
-        // -----------------------------------------
         initMap() {
+            // console.log('init map...');
             this.markersLayer = new ol.layer.Vector({
                 source: new ol.source.Vector()
             });
@@ -115,6 +116,7 @@ const app = Vue.createApp({
                 visible: false,
                 opacity: 0.6
             });
+            // console.log('heatmap layer créé');
 
             this.map = new ol.Map({
                 target: "map",
@@ -141,16 +143,13 @@ const app = Vue.createApp({
                 }));
             });
 
-            // Mettre à jour la visibilité des objets à chaque changement de zoom
             this.map.getView().on('change:resolution', () => {
                 this.mettreAJourVisibiliteSelonZoom();
             });
         },
 
-        // -----------------------------------------
-        // Charger les objets depuis l'API
-        // -----------------------------------------
         loadObjets() {
+            // console.log('chargement objets pour scenario:', this.scenarioChoisi);
             if (!this.scenarioChoisi) {
                 return;
             }
@@ -159,15 +158,14 @@ const app = Vue.createApp({
                 .then(res => res.json())
                 .then(objets => {
                     const config = this.scenarioConfig[this.scenarioChoisi];
+                    // console.log('objets reçus:', objets.length);
                     
-                    // Filtrer les objets selon le scénario
                     this.objetsFiltres = objets
                         .filter(obj => {
                             const id = parseInt(obj.id);
                             return id >= config.minId && id <= config.maxId;
                         })
                         .map(obj => {
-                            // Normaliser les valeurs numériques
                             const zoomValue = Number(obj.zoom_min);
                             const pointId = Number(obj.id_point);
                             return {
@@ -179,16 +177,16 @@ const app = Vue.createApp({
                             };
                         });
                     
-                    // Utiliser objetsFiltres pour le jeu
                     this.objets = this.objetsFiltres;
                     this.initialiserObjets();
+                })
+                .catch(err => {
+                    console.error('erreur chargement objets:', err);
                 });
         },
 
-        // -----------------------------------------
-        // Afficher les marqueurs sur la carte
-        // -----------------------------------------
         initialiserObjets() {
+            // console.log('init objets, total:', this.objets.length);
             this.mettreAJourVisibiliteSelonZoom();
 
             const premier = this.trouverPremierObjet();
@@ -233,15 +231,12 @@ const app = Vue.createApp({
             delete this.objetFeatures[objetId];
         },
 
-        // -----------------------------------------
-        // Gestion du clic sur un objet
-        // -----------------------------------------
         onClickObjet(objet) {
+            // console.log('clic sur objet:', objet.nom);
             if (!objet || objet.ramasse) {
                 return;
             }
 
-            // Vérifier si un objet débloquant est requis
             if (objet.id_objet_blocant) {
                 const blocantPossede = this.inventaire.some(item => item.id === objet.id_objet_blocant);
                 if (!blocantPossede) {
@@ -251,7 +246,6 @@ const app = Vue.createApp({
                 }
             }
 
-            // Vérifier les objets verrouillés par code
             if (objet.type_objet === "code") {
                 this.recupererCode(objet);
                 return;
@@ -270,6 +264,7 @@ const app = Vue.createApp({
             if (dejaDansInventaire) {
                 return;
             }
+            // console.log('récupération objet:', objet.nom);
 
             this.retirerMarqueurObjet(objet.id);
             objet.ramasse = true;
@@ -282,7 +277,6 @@ const app = Vue.createApp({
             this.deverrouillerObjetsDependants(objet);
             this.desactiverTricheApresRecuperation();
             
-            // Vérifier si la partie est terminée
             this.verifierFinDePartie(objet);
         },
 
@@ -322,6 +316,7 @@ const app = Vue.createApp({
             if (tricheActive) {
                 points = 1;
             }
+            // console.log('points attribués:', points, 'pour objet:', objet.nom);
 
             this.pointsSession += points;
             this.score = this.scoreInitial + this.pointsSession;
@@ -469,26 +464,19 @@ const app = Vue.createApp({
             }
         },
 
-        // -----------------------------------------
-        // Afficher le message de récupération d'un objet
-        // -----------------------------------------
         showObjetMessage(objet) {
-            // Messages spécifiques pour chaque objet récupérable
             const messages = {
                 'Chaussure de Vitesse': "Tu sens une vitesse nouvelle… Hakimi serait fier.",
-                // Ajouter d'autres messages si besoin
             };
 
-            // Utiliser le message spécifique ou un message par défaut
             const message = messages[objet.nom] || `Vous avez récupéré : ${objet.nom}`;
             
             this.popupMessage = message;
             this.popupVisible = true;
 
-            // Fermer automatiquement après 3 secondes
             setTimeout(() => {
                 this.popupVisible = false;
-                this.popupMessage = ''; // Vider le message aussi
+                this.popupMessage = '';
             }, 3000);
         },
 
@@ -503,18 +491,13 @@ const app = Vue.createApp({
             }, 3500);
         },
 
-        // -----------------------------------------
-        // Fermer la popup manuellement
-        // -----------------------------------------
         closePopup() {
             this.popupVisible = false;
-            this.popupMessage = ''; // Vider le message aussi
+            this.popupMessage = '';
         },
 
-        // -----------------------------------------
-        // Mode triche (Heatmap ON/OFF)
-        // -----------------------------------------
         toggleHeatmap() {
+            // console.log('toggle heatmap, actif:', !this.heatmapActive);
             this.appliquerEtatHeatmap();
         },
 
@@ -568,10 +551,8 @@ const app = Vue.createApp({
             this.appliquerEtatHeatmap();
         },
 
-        // -----------------------------------------
-        // Gestion visibilité selon zoom
-        // -----------------------------------------
         mettreAJourVisibiliteSelonZoom() {
+            // console.log('zoom changé:', this.map.getView().getZoom());
             if (!this.map) {
                 return;
             }
@@ -599,36 +580,28 @@ const app = Vue.createApp({
             }
         },
 
-        // -----------------------------------------
-        // Recherche d'adresses/lieux
-        // -----------------------------------------
         async searchLocation(event) {
-            // Empêcher le rechargement de page
             if (event) {
                 event.preventDefault();
             }
 
             if (!this.searchQuery || !this.searchQuery.trim()) {
-                console.warn('Recherche vide');
+                // console.warn('recherche vide');
                 this.searchResults = [];
                 return;
             }
 
             const query = this.searchQuery.trim();
-            console.log('🔍 Recherche de:', query);
+            // console.log('recherche:', query);
 
-            // Vérifier que la carte est initialisée
             if (!this.map) {
-                console.error('La carte n\'est pas encore initialisée');
                 alert('Veuillez patienter, la carte se charge...');
                 return;
             }
 
             try {
-                // Utiliser Nominatim (OpenStreetMap) pour le géocodage
                 const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
-                
-                console.log('📡 Requête vers:', url);
+                // console.log('requête nominatim:', url);
 
                 const response = await fetch(url, {
                     method: 'GET',
@@ -638,26 +611,20 @@ const app = Vue.createApp({
                     }
                 });
 
-                console.log('📥 Réponse status:', response.status, response.statusText);
+                // console.log('status réponse:', response.status);
 
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
                 }
 
                 const results = await response.json();
-                console.log('✅ Résultats reçus:', results);
+                // console.log('résultats:', results.length);
                 
                 if (results && results.length > 0) {
-                    console.log(`📍 ${results.length} résultat(s) trouvé(s)`);
                     this.searchResults = results;
-                    
-                    // Placer TOUS les marqueurs sur la carte
                     this.placeAllSearchMarkers(results);
-                    
                 } else {
-                    console.warn('⚠️ Aucun résultat trouvé');
                     this.searchResults = [];
-                    // Nettoyer les marqueurs s'il n'y a pas de résultats
                     if (this.searchLayer) {
                         this.searchLayer.getSource().clear();
                     }
@@ -674,34 +641,24 @@ const app = Vue.createApp({
                 }
             }
         },
-        // -----------------------------------------
-        // Sélectionner un lieu depuis les résultats
-        // -----------------------------------------
         selectLocation(result) {
-            console.log('Lieu sélectionné:', result);
+            // console.log('lieu sélectionné:', result.display_name);
             
             const lon = parseFloat(result.lon);
             const lat = parseFloat(result.lat);
 
-            // Créer ou mettre à jour le marqueur de recherche
             this.placeSearchMarker(lon, lat, result.display_name);
 
-            // Animer la carte vers la position
             this.map.getView().animate({
                 center: ol.proj.fromLonLat([lon, lat]),
                 zoom: Math.max(this.map.getView().getZoom(), 15),
                 duration: 1000
             });
 
-            // Vider les résultats
             this.searchResults = [];
             this.searchQuery = '';
         },
-        // -----------------------------------------
-        // Placer TOUS les marqueurs de recherche sur la carte
-        // -----------------------------------------
         placeAllSearchMarkers(results) {
-            // Créer le layer s'il n'existe pas
             if (!this.searchLayer) {
                 this.searchLayer = new ol.layer.Vector({
                     source: new ol.source.Vector(),
@@ -710,13 +667,11 @@ const app = Vue.createApp({
                 this.map.addLayer(this.searchLayer);
             }
 
-            // Vider les anciens marqueurs de recherche
             this.searchLayer.getSource().clear();
 
             const features = [];
             const coordinates = [];
 
-            // Créer un marqueur pour chaque résultat
             results.forEach((result, index) => {
                 const lon = parseFloat(result.lon);
                 const lat = parseFloat(result.lat);
@@ -731,7 +686,6 @@ const app = Vue.createApp({
                     index: index + 1
                 });
 
-                // Style du marqueur de recherche
                 feature.setStyle(new ol.style.Style({
                     image: new ol.style.Circle({
                         radius: 10,
@@ -742,7 +696,7 @@ const app = Vue.createApp({
                         })
                     }),
                     text: new ol.style.Text({
-                        text: String(index + 1), // Numéro du résultat (1, 2, 3...)
+                        text: String(index + 1),
                         fill: new ol.style.Fill({ color: 'white' }),
                         font: 'bold 12px Arial'
                     })
@@ -751,22 +705,16 @@ const app = Vue.createApp({
                 features.push(feature);
             });
 
-            // Ajouter tous les marqueurs au layer
             this.searchLayer.getSource().addFeatures(features);
-
-            // Ajuster le zoom et le centre pour voir tous les marqueurs
             this.fitMapToResults(coordinates);
         },
 
-        // -----------------------------------------
-        // Ajuster le zoom et le centre pour voir tous les résultats
-        // -----------------------------------------
         fitMapToResults(coordinates) {
+            // console.log('fit map to', coordinates.length, 'results');
             if (coordinates.length === 0) {
                 return;
             }
 
-            // Si un seul résultat, zoomer dessus
             if (coordinates.length === 1) {
                 const [lon, lat] = coordinates[0];
                 this.map.getView().animate({
@@ -777,51 +725,22 @@ const app = Vue.createApp({
                 return;
             }
 
-            // Pour plusieurs résultats, calculer l'étendue qui les contient tous
-            // Convertir les coordonnées en projections de la carte
             const projectedCoords = coordinates.map(coord => 
                 ol.proj.fromLonLat(coord)
             );
 
-            // Calculer l'étendue (bounding box)
             const extent = ol.extent.boundingExtent(projectedCoords);
-            
-            // Ajouter un padding pour avoir un peu d'espace autour
-            ol.extent.scaleFromCenter(extent, 1.3); // 30% de marge
+            ol.extent.scaleFromCenter(extent, 1.3);
 
-            // Ajuster la vue pour contenir tous les marqueurs
             this.map.getView().fit(extent, {
                 duration: 1000,
-                maxZoom: 16, // Zoom maximum (même si les points sont très proches)
-                padding: [50, 50, 50, 50] // Padding en pixels (haut, droite, bas, gauche)
+                maxZoom: 16,
+                padding: [50, 50, 50, 50]
             });
         },
 
-        // -----------------------------------------
-        // Sélectionner un lieu depuis les résultats
-        // -----------------------------------------
-        selectLocation(result) {
-            console.log('Lieu sélectionné:', result);
-            
-            const lon = parseFloat(result.lon);
-            const lat = parseFloat(result.lat);
-
-            // Zoomer sur le lieu sélectionné
-            this.map.getView().animate({
-                center: ol.proj.fromLonLat([lon, lat]),
-                zoom: Math.max(this.map.getView().getZoom(), 15),
-                duration: 1000
-            });
-
-            // Vider les résultats de la liste (mais garder les marqueurs)
-            this.searchResults = [];
-            this.searchQuery = '';
-        },
-
-        // -----------------------------------------
-        // Vérifier si la partie est terminée
-        // -----------------------------------------
         verifierFinDePartie(objetDeclencheur = null) {
+            // console.log('vérif fin partie, objet:', objetDeclencheur?.nom);
             if (!this.scenarioChoisi || this.finDePartie || this.objets.length === 0) {
                 return;
             }
@@ -841,23 +760,15 @@ const app = Vue.createApp({
             }
         },
 
-        // -----------------------------------------
-        // Terminer la partie
-        // -----------------------------------------
         terminerPartie() {
             this.finDePartie = true;
-            
-            // Sauvegarder le score
+            // console.log('partie terminée! score:', this.score);
             this.sauvegarderScore();
-            
-            // Charger le classement
             this.chargerClassement();
         },
 
-        // -----------------------------------------
-        // Sauvegarder le score
-        // -----------------------------------------
         async sauvegarderScore() {
+            // console.log('sauvegarde score, points:', this.pointsSession);
             const pointsAGagner = this.pointsSession;
             if (pointsAGagner <= 0) {
                 return;
