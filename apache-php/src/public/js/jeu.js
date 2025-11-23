@@ -106,12 +106,16 @@ const app = Vue.createApp({
             // Couche heatmap via GeoServer
             this.heatmapLayer = new ol.layer.Tile({
                 source: new ol.source.TileWMS({
-                    url: "http://localhost:8080/geoserver/hakimi/wms",
+                    url: "http://localhost:8080/geoserver/PSG_Quest/wms",
                     params: {
-                        "LAYERS": "hakimi:points",
+                        "LAYERS": "PSG_Quest:points",
                         "STYLES": "heatmap_points",
-                        "TILED": true
-                    }
+                        "TILED": true,
+                        "FORMAT": "image/png",
+                        "TRANSPARENT": true
+                    },
+                    serverType: 'geoserver',
+                    transition: 0
                 }),
                 visible: false,
                 opacity: 0.6
@@ -497,11 +501,16 @@ const app = Vue.createApp({
         },
 
         toggleHeatmap() {
-            // console.log('toggle heatmap, actif:', !this.heatmapActive);
             this.appliquerEtatHeatmap();
         },
 
         appliquerEtatHeatmap() {
+            if (!this.map) {
+                this.showInfoMessage("Carte indisponible pour le moment.");
+                this.heatmapActive = false;
+                return;
+            }
+            
             if (!this.heatmapLayer) {
                 this.showInfoMessage("Carte indisponible pour le moment.");
                 this.heatmapActive = false;
@@ -519,8 +528,23 @@ const app = Vue.createApp({
 
                 this.cheatUsedEver = true;
                 this.cheatActiveObjectId = this.objetIndiceActuel.id;
+                
+                // Mettre à jour les paramètres avant de rendre visible
                 this.mettreAJourHeatmapPourObjet(this.objetIndiceActuel);
+                
+                // Rendre la couche visible
                 this.heatmapLayer.setVisible(true);
+                
+                // Forcer la mise à jour de la carte
+                if (this.map) {
+                    this.map.updateSize();
+                    // Forcer le rafraîchissement de toutes les couches
+                    this.map.getLayers().forEach(layer => {
+                        if (layer.getSource && layer.getSource().refresh) {
+                            layer.getSource().refresh();
+                        }
+                    });
+                }
             } else {
                 this.heatmapLayer.setVisible(false);
                 this.cheatActiveObjectId = null;
@@ -533,14 +557,39 @@ const app = Vue.createApp({
             }
 
             const source = this.heatmapLayer.getSource();
-            const paramsActuels = source.getParams ? source.getParams() : {};
+            if (!source) {
+                return;
+            }
+
             const pointId = objet.id_point || objet.id;
+            if (!pointId) {
+                return;
+            }
+            
+            // Mettre à jour les paramètres avec le filtre CQL pour n'afficher que le point recherché
             const nouveauxParams = {
-                ...paramsActuels,
-                'CQL_FILTER': `id=${pointId}`,
-                '_ts': Date.now()
+                "LAYERS": "PSG_Quest:points",
+                "STYLES": "heatmap_points",
+                "TILED": true,
+                "FORMAT": "image/png",
+                "TRANSPARENT": true,
+                "CQL_FILTER": `id=${pointId}`,
+                "_ts": Date.now()
             };
+            
             source.updateParams(nouveauxParams);
+            
+            // Forcer le rafraîchissement de la source
+            source.refresh();
+            
+            // Centrer la carte sur le point recherché si on a les coordonnées
+            if (objet.lon && objet.lat && this.map) {
+                this.map.getView().animate({
+                    center: ol.proj.fromLonLat([objet.lon, objet.lat]),
+                    zoom: Math.max(this.map.getView().getZoom(), 14),
+                    duration: 500
+                });
+            }
         },
 
         desactiverTricheApresRecuperation() {

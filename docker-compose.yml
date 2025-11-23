@@ -33,6 +33,7 @@ services:
   # GeoServer est un serveur cartographique open source qui permet de publier des couches WMS, WFS, WCS
   geoserver:
     image: kartoza/geoserver
+    platform: linux/amd64
     environment:
       GEOSERVER_ADMIN_USER: admin
       GEOSERVER_ADMIN_PASSWORD: geoserver
@@ -42,7 +43,9 @@ services:
       - geoserver_data:/opt/geoserver/data_dir
     depends_on:
       - db
-      
+    restart: unless-stopped
+  
+  
 volumes:
   pg_data:
   pgadmin_data:

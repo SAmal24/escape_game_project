@@ -37,7 +37,7 @@ CREATE TABLE objets (
     code_necessaire VARCHAR(10),
     id_objet_blocant INT REFERENCES objets(id),
     id_point INT REFERENCES points(id) ON DELETE CASCADE,
-    zoom_min INT DEFAULT 14,
+    zoom_min INT DEFAULT 18,
     icone VARCHAR(255),
     indice TEXT,
     charge_au_depart BOOLEAN DEFAULT FALSE
