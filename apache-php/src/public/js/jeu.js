@@ -56,7 +56,7 @@ const app = Vue.createApp({
     },
 
     mounted() {
-        // TODO: initialiser la carte ici si besoin
+        
     },
 
     methods: {
@@ -563,26 +563,28 @@ const app = Vue.createApp({
 
             const pointId = objet.id_point || objet.id;
             if (!pointId) {
+                console.warn('Aucun id_point trouvé pour l\'objet:', objet);
                 return;
             }
             
-            // Mettre à jour les paramètres avec le filtre CQL pour n'afficher que le point recherché
+
             const nouveauxParams = {
                 "LAYERS": "PSG_Quest:points",
-                "STYLES": "heatmap_points",
+                "STYLES": "heatmap_points", 
                 "TILED": true,
                 "FORMAT": "image/png",
                 "TRANSPARENT": true,
-                "CQL_FILTER": `id=${pointId}`,
-                "_ts": Date.now()
+                "SRS": "EPSG:4326",
+                "CQL_FILTER": `id=${pointId}`, 
+                "_ts": Date.now() 
             };
             
             source.updateParams(nouveauxParams);
             
-            // Forcer le rafraîchissement de la source
-            source.refresh();
+            if (source.refresh) {
+                source.refresh();
+            }
             
-            // Centrer la carte sur le point recherché si on a les coordonnées
             if (objet.lon && objet.lat && this.map) {
                 this.map.getView().animate({
                     center: ol.proj.fromLonLat([objet.lon, objet.lat]),
@@ -680,7 +682,7 @@ const app = Vue.createApp({
                     alert('Aucun résultat trouvé pour : ' + query);
                 }
             } catch (error) {
-                console.error('❌ Erreur lors de la recherche:', error);
+                console.error('Erreur lors de la recherche:', error);
                 this.searchResults = [];
                 
                 if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
@@ -851,9 +853,8 @@ const app = Vue.createApp({
             }
         },
 
-        // -----------------------------------------
+        
         // Charger le score existant du joueur
-        // -----------------------------------------
         async chargerScoreInitial() {
             try {
                 const response = await fetch(`/api/scores/${encodeURIComponent(this.pseudo)}`);
@@ -876,9 +877,8 @@ const app = Vue.createApp({
             }
         },
 
-        // -----------------------------------------
+        
         // Charger le classement
-        // -----------------------------------------
         chargerClassement() {
             fetch('/api/scores')
                 .then(res => res.json())
@@ -890,9 +890,7 @@ const app = Vue.createApp({
                 });
         },
 
-        // -----------------------------------------
         // Rejouer (retour à la sélection de scénario)
-        // -----------------------------------------
         rejouer() {
             this.finDePartie = false;
             this.scenarioChoisi = null;
@@ -923,9 +921,8 @@ const app = Vue.createApp({
             }
         },
 
-        // -----------------------------------------
+    
         // Retour à l'accueil
-        // -----------------------------------------
         retourAccueil() {
             window.location.href = '/';
         },
