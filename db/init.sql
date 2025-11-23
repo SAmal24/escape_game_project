@@ -102,37 +102,37 @@ INSERT INTO types_objets (code, description) VALUES
 
 -- 1. Chaussure de Vitesse (récupérable)
 INSERT INTO objets 
-(nom, type_objet, id_point, charge_au_depart, icone)
+(nom, type_objet, id_point, charge_au_depart, icone, indice)
 VALUES
-('Chaussure de Vitesse', 'recuperable', 1, TRUE, 'speed_boots.png');
+('Chaussure de Vitesse', 'recuperable', 1, TRUE, 'speed_boots.png',
+'Là où la dame de fer domine Paris, les chaussures de l''éclair reposent à ses pieds');
 
 -- 2. Casque Audio de Concentration (bloqué par un objet)
 INSERT INTO objets 
-(nom, type_objet, id_objet_blocant, indice, id_point, icone)
+(nom, type_objet, id_objet_blocant, id_point, icone, indice)
 VALUES
-('Casque Audio de Concentration', 'bloque_objet', 1,
-'Tu n’iras pas loin si tu n’entends pas les supporters',
-2, 'headset.png');
+('Casque Audio de Concentration', 'bloque_objet', 1, 2, 'headset.png',
+'Sous l''arche des héros, le casque isole des bruits pour mieux entendre la gloire');
 
 -- 3. Téléphone Cryptex, il donne le code pour débloquer la carte d'entrainement , code = 1970 
 INSERT INTO objets 
-(nom, type_objet, code_necessaire, id_point, charge_au_depart, icone)
+(nom, type_objet, code_necessaire, id_point, charge_au_depart, icone, indice)
 VALUES
-('Téléphone Cryptex', 'code', '1970', 3, TRUE, 'phone.png');
+('Téléphone Cryptex', 'code', '1970', 3, TRUE, 'phone.png',
+'Face à la géante de métal, le cryptex murmure l''année de naissance d''une légende');
 
--- 4. Carte d’Entraînement (bloqué par code 1970)
+-- 4. Carte d'Entraînement (bloqué par code 1970)
 INSERT INTO objets 
-(nom, type_objet, code_necessaire, indice, id_point, icone)
-VALUES
-('Carte d’Entraînement', 'bloque_code', '1970',
-'Cherche là où résonnent les chants',
-4, 'training_card.png');
+(nom, type_objet, code_necessaire, id_point, icone, indice)
+VALUES ('Carte d''Entraînement', 'bloque_code', '1970', 4, 'training_card.png',
+'Là où la foule rugit pour les rouges et bleus, la carte du guerrier attend son porteur');
 
--- 5. Le Sésame d’Hakimi (final)
+-- 5. Le Sésame d'Hakimi (final)
 INSERT INTO objets 
-(nom, type_objet, id_objet_blocant, id_point, icone)
+(nom, type_objet, id_objet_blocant, id_point, icone, indice)
 VALUES
-('Le Sésame d’Hakimi', 'final', 4, 5, 'golden_key.png');
+('Le Sésame d''Hakimi', 'final', 4, 5, 'golden_key.png',
+'Là où la Seine embrasse les amours éternels, la clé du destin scelle la victoire');
 
 
 

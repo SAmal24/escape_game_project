@@ -8,7 +8,7 @@ Hakimi & PSG Quest est un jeu de géolocalisation où vous devez explorer Paris 
 
 ## Scénario 1 : Hakimi Quest (Ouest Paris)
 
-**Objectif** : Trouver la clé d'or d'ahakimi 
+**Objectif** : Trouver la clé d'or d'Hakimi 
 
 ### Ordre de collecte des objets :
 
